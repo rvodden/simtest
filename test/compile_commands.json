@@ -1,0 +1,26 @@
+[
+    {
+        "arguments": [
+            "cc", 
+            "-c", 
+            "-I.", 
+            "-Os", 
+            "-pedantic", 
+            "-Wall", 
+            "-Wextra", 
+            "-Wstrict-prototypes", 
+            "-Wmissing-prototypes", 
+            "-Wundef", 
+            "-Wunreachable-code", 
+            "-Wsign-compare", 
+            "-Wa", 
+            "-I/Users/voddenr/eclipse-workspace/simavr/simavr/sim", 
+            "-std=gnu99", 
+            "-o", 
+            "target/main.o", 
+            "src/main.c"
+        ], 
+        "directory": "/Users/voddenr/eclipse-workspace/simtest/test", 
+        "file": "src/main.c"
+    }
+]

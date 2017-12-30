@@ -1,0 +1,4 @@
+Unable to get cpu frequency from firmware. Defaulting to 8000000
+Loaded 82 .text at address 0x0
+Loaded 0 .data
+firmware main.elf f=0 mmcu=
