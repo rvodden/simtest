@@ -13,11 +13,14 @@ OBJ=$(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 # Library Options
 MATH_LIB=-lm
 SIMAVR_LIB=-lsimavr -lelf
+OPENSSL_LIB=-L/usr/local/opt/openssl/lib
+WEBSOCKETS_LIB=-lwebsockets
 
 # Define header directories.
 VPATH=$(call uniq,$(dir $(SRC)))
 EXTRAINCDIRS=$(call uniq,$(dir $(call rwildcard,$(SRCDIR),*.h)))
 SIMAVR_HEADERS=/Users/voddenr/eclipse-workspace/simavr/simavr/sim
+OPENSSL_HEADERS=/usr/local/opt/openssl/include
 
 CSTANDARD= -std=gnu99
 
@@ -29,18 +32,19 @@ CFLAGS += -Wall
 CFLAGS += -Wextra
 CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wmissing-prototypes
-CFLAGS += -Wundef
 CFLAGS += -Wunreachable-code
 CFLAGS += -Wsign-compare
-CFLAGS += -Wa
+CFLAGS += -Wno-zero-length-array
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += -I$(SIMAVR_HEADERS)
+CFLAGS += -I$(OPENSSL_HEADERS)
 CFLAGS += $(CSTANDARD)
 
 # Linker Options
 LDFLAGS = -Wl 
 LDFLAGS += $(patsubst %,-L%,$(EXTRALIBDIRS))
 LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB) $(SIMAVR_LIB) 
+LDFLAGS += $(OPENSSL_LIB) $(WEBSOCKETS_LIB)
 
 # Define programs and commands.
 SHELL = bash
@@ -66,7 +70,11 @@ GENDEPFLAGS = -MMD -MP -MF .dep/$(@F).d
 ALL_CFLAGS = -I. $(CFLAGS) $(GENDEPFLAGS)
 
 # Default target.
-all: gccversion build 
+all: gccversion build
+
+debug: CFLAGS += -DDEBUG -g
+debug: OPT=0
+debug: build
 
 # Change the build target to build a HEX file or a library.
 build: $(TARGET)
@@ -111,8 +119,7 @@ compile_commands.json: Makefile
 	$(BEAR) -v --cdb $@ $(MAKE)
 
 # Listing of phony targets.
-.PHONY : all gccversion build \
-clean clean_list 
+.PHONY : all gccversion build clean clean_list debug
 
 # Make does not offer a recursive wildcard function, so here's one:
 define rwildcard=

@@ -1,99 +1,122 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include <sim_irq.h>
-#include <sim_avr.h>
-#include <sim_elf.h>
-#include <avr_ioport.h>
+#include "simulator.h"
 
+#undef LWS_OPENSSL_SUPPORT
+#include <libwebsockets.h>
 
-typedef struct led_t {
-    avr_irq_t * irq;	// output irq
-    struct avr_t * avr;
-    uint8_t value;
-} led_t;
+struct lws_context_creation_info info;
+struct lws_context *context;
 
-avr_t *avr = NULL;
-led_t led;
+void sighandler( int );
+static void signal_cb(uv_signal_t *watcher, int signum);
 
-void led_init(
-        struct avr_t * avr,
-        led_t* led,
-        const char * name);
+#define LOCAL_RESOURCE_PATH "/Users/voddenr/eclipse-workspace/simtest/test/resources/"
+char *resource_path = LOCAL_RESOURCE_PATH;
 
-void led_switch( struct avr_irq_t * irq, uint32_t value, void * param );
-
-void
-led_init(
-        struct avr_t *avr,
-        led_t * led,
-        const char * name)
+void sighandler(int sig)
 {
-    led->irq = avr_alloc_irq(&avr->irq_pool, 0, 1, &name);
-    led->avr = avr;
-    avr_irq_register_notify( led->irq, &led_switch, NULL);
+    fprintf(stderr, "Caught signal: %i\n", sig);
+    lws_cancel_service(context);
 }
 
-void 
-led_switch( struct avr_irq_t * irq, uint32_t value, void * param ) {
-    switch(value) {
-        case 1:
-            printf("LED On\n");
-            break;
-        case 0:
-            printf("LED Off\n");
+static const struct lws_http_mount mount = {
+    NULL,	/* linked-list pointer to next*/
+    "/",		/* mountpoint in URL namespace on this vhost */
+    LOCAL_RESOURCE_PATH, /* where to go on the filesystem for that */
+    "index.html",	/* default filename if none given */
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    LWSMPRO_FILE,	/* mount type is a directory in a filesystem */
+    1,		/* strlen("/"), ie length of the mountpoint */
+    NULL,
+
+    { NULL, NULL } // sentinel
+};
+
+static const struct lws_extension exts[] = {
+	{ NULL, NULL, NULL /* terminator */ }
+};
+
+static void signal_cb(uv_signal_t *watcher, int signum)
+{
+    lwsl_err("Signal %d caught, exiting...\n", signum);
+    switch (watcher->signum) {
+        case SIGTERM:
+        case SIGINT:
             break;
         default:
+            signal(SIGABRT, SIG_DFL);
+            abort();
             break;
     }
-    fflush(stdout);
+    lws_libuv_stop(context);
 }
 
-int main ( void ) {
-    elf_firmware_t firmware;
-    const char* firmware_filename = "main.elf";
+int main ( void ) 
+{
+    avr_t* avr;
 
-    if( elf_read_firmware(firmware_filename, &firmware) ) 
-    {
-        fprintf(stderr, "Unable to open firmware: %s\n", firmware_filename );        
-        exit(-1);
+    int uid = -1, gid = -1;
+    int opts = 0;
+
+    memset(&info, 0, sizeof info);
+    info.port = 7681;
+
+    signal(SIGINT, sighandler);
+    lws_set_log_level(7, NULL);
+
+    lwsl_notice("Richard's Simulator");
+
+    info.max_http_header_pool = 16;
+    info.options = opts | 
+        LWS_SERVER_OPTION_FALLBACK_TO_RAW |
+        LWS_SERVER_OPTION_VALIDATE_UTF8 |
+        LWS_SERVER_OPTION_LIBUV;
+
+    info.gid = gid;
+    info.uid = uid;
+
+    info.extensions = exts;
+    info.timeout_secs = 5;
+
+    /* tell lws about our mount we want */
+    info.mounts = &mount;
+
+    context = lws_create_context(&info);
+    if (context == NULL) {
+        lwsl_err("libwebsocket init failed\n");
+        return -1;
     }
 
-    printf("firmware %s f=%d mmcu=%s\n", firmware_filename, (int)firmware.frequency, firmware.mmcu);
-
-    if( strlen(firmware.mmcu) == 0) {
-        fprintf(stderr, "Unable to get cpu type from firmware; defaulting to attiny85.\n");
-        strcpy(firmware.mmcu, "attiny85");
-    }
-
-    if((int)firmware.frequency == 0) {
-        fprintf(stderr, "Unable to get cpu frequency from firmware; defaulting to 8000000.\n");
-        firmware.frequency = 8000000;
-    }
-
-    avr = avr_make_mcu_by_name( firmware.mmcu );
-
-    if (!avr) {
-		fprintf(stderr, "AVR '%s' not known\n", firmware.mmcu);
-		exit(-2);
+    /* libuv event loop */
+	lws_uv_sigint_cfg(context, 1, signal_cb);
+	if (lws_uv_initloop(context, NULL, 0)) {
+		lwsl_err("lws_uv_initloop failed\n");
+		goto bail;
 	}
 
-    avr_init(avr);
-	avr_load_firmware(avr, &firmware);
+    lws_libuv_run(context, 0);
 
-    led_init(avr, &led, "led" );
+    bail:
+	/* when we decided to exit the event loop */
+	lws_context_destroy(context);
+	lws_context_destroy2(context);
+	lwsl_notice("libwebsockets-test-server exited cleanly\n");
 
-    avr_connect_irq(avr_io_getirq(avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 0), led.irq);
+	return 0;
 
-    int state = 0;
-    while (1) {
-        state = avr_run(avr);
-        if (state == cpu_Done || state == cpu_Crashed)
-			break;
-    }
-
-    avr_terminate(avr);
+    /* Initialise the avr simulator */
+    avr = simulator_init();
+    // simulator_run(avr);
 
     return 0;
 }
