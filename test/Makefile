@@ -14,13 +14,14 @@ OBJ=$(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 MATH_LIB=-lm
 SIMAVR_LIB=-lsimavr -lelf
 OPENSSL_LIB=-L/usr/local/opt/openssl/lib
-WEBSOCKETS_LIB=-lwebsockets
+WEBSOCKETS_LIB=-L/opt/libwebsockets/lib -lwebsockets
 
 # Define header directories.
 VPATH=$(call uniq,$(dir $(SRC)))
 EXTRAINCDIRS=$(call uniq,$(dir $(call rwildcard,$(SRCDIR),*.h)))
 SIMAVR_HEADERS=/Users/voddenr/eclipse-workspace/simavr/simavr/sim
 OPENSSL_HEADERS=/usr/local/opt/openssl/include
+WEBSOCKETS_HEADERS=/opt/libwebsockets/include
 
 CSTANDARD= -std=gnu99
 
