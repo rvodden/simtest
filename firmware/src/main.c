@@ -10,6 +10,6 @@ int main ( void  ) {
     PORTB=0x00;
     while(1) {
         PINB=0x01;
-        _delay_ms(250);
+        _delay_ms(1000);
     }
 }

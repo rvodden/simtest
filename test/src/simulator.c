@@ -61,6 +61,10 @@ struct simulator* simulator_init() {
     return simulator;
 }
 
+void simulator_destroy(struct simulator* simulator) {
+    free(simulator); 
+}
+
 void simulator_run(struct simulator* simulator) {
     int state = 0;
 

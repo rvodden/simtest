@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+
 #include "websocket.h"
 #include "simulator.h"
 
@@ -20,31 +21,37 @@ struct websocket_instance {
     pthread_mutex_t* lock_ring;
     int message_allocated;
     char rx_enabled;
-    struct websocket_per_session_data *head; /* linked list of sessions */
 };
 
+/* PRIVATE PROTOTYPES */
+static struct websocket_per_session_data* delete_session(
+        struct websocket_per_session_data*, 
+        struct websocket_per_session_data* 
+);
+
+/* PUBLIC IMPLEMENTATION*/
 
 void websocket_destroy_message(void *_msg)
 {
 	struct websocket_message *msg = _msg;
-
-	free(msg->payload);
-	msg->payload = NULL;
-	msg->length = 0;
-    free(msg);
+    // free(msg);
 }
 
-static struct websocket_per_vhost_data* get_vhost_data( struct lws* lwsi ) {
-    return ( struct websocket_per_vhost_data   * ) lws_protocol_vh_priv_get (
+static struct websocket_context_data* get_vhost_data( struct lws* lwsi ) {
+    return ( struct websocket_context_data   * ) lws_protocol_vh_priv_get (
                 lws_get_vhost(lwsi),
                 lws_get_protocol(lwsi)
                 );
 }
 
-static void calback_all_in_instance_on_writeable( struct websocket_instance* wi ) {
-    struct websocket_per_session_data* current = wi->head;
-    while(current) {
-        lws_callback_on_writable(current->lwsi);
+void websocket_callback_all_in_context_on_writeable( struct websocket_context_data* context_data ) {
+
+    lwsl_info("Send message\n");
+    struct websocket_per_session_data* session_data = context_data->head;
+    while (session_data) {
+        lwsl_info("Sending to: %p\n", session_data->lwsi);
+        lws_cancel_service(context_data->context);
+        session_data = session_data->next;
     }
 }
 
@@ -52,45 +59,43 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
 {
     /* grab the per session data, and the per vhost data */
     struct websocket_per_session_data *session_data = ( struct websocket_per_session_data * ) user;
-    struct websocket_per_vhost_data   *context_data = lws_context_user( lws_get_context(lwsi) );
+    struct websocket_context_data *context_data = lws_context_user( lws_get_context(lwsi) );
 
-    struct websocket_instance *ws;
+    struct websocket_instance *ws = lws_get_protocol(lwsi);
     
-    if (session_data)
-        ws = session_data->ws;
-    else
-        ws = NULL;
-
     switch (reason) {
 
         case LWS_CALLBACK_PROTOCOL_INIT:
-            lws_protocol_vh_priv_zalloc(
-                lws_get_vhost(lwsi),
-				lws_get_protocol(lwsi),
-				sizeof(struct websocket_per_vhost_data)
-            );
             lwsl_info("Websocket Protocol Iniialized\n");
+            
+            /* Create per vhost data */
+            if(!context_data) {
+                lwsl_err("Cannot allocate context data");
+                return 1;
+            }  
+            break;
+            
+        case LWS_CALLBACK_PROTOCOL_DESTROY:
+            free(ws);
             break;
 
         case LWS_CALLBACK_ESTABLISHED:
-            lwsl_info("New websocket protocol connection recieved\n");
+            lwsl_info("New websocket protocol connection received\n");
             
-            if ( !ws ) { /* there's no created instance attached to this vhost */
-                ws = malloc(sizeof(*ws));
-                if (!ws) return 1;
-                memset(ws, 0, sizeof(*ws));
-            }
-
             /* tell this session about our protocol instance, lws instance, and point at the tail of the buffer */
             session_data->ws = ws;
+            session_data->ws->ring = context_data->ring;
             session_data->lwsi = lwsi;
             session_data->tail = lws_ring_get_oldest_tail(context_data->ring);
 
             /* stick this session at the front of the list */
+            session_data->next = context_data->head;
+            context_data->head = session_data;
+            break;
 
-            session_data->next = ws->head;
-            ws->head = session_data;
-
+        case LWS_CALLBACK_CLOSED:
+            /* remove session from the list */
+            context_data->head = delete_session(context_data->head, session_data);
             break;
 
         case LWS_CALLBACK_SERVER_WRITEABLE:
@@ -102,39 +107,48 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
             struct websocket_message* message;
             int n;
 
-            /* loop around until the send pipe is chocked 
-             * if there's nothing send we'll break out */
-            do {
-                /* grab the message which is at the tail position for this session */
-                message = ( struct websocket_message* ) lws_ring_get_element( ws->ring, &session_data->tail );
-                
-                /* break out if its null */
-                if(!message) break;
+			/* grab the message which is at the tail position for this session */
+			message = ( struct websocket_message* ) lws_ring_get_element( ws->ring, &(session_data->tail) );
 
-                /* check for a payload */
-                if( message->payload ) {
-                    n = lws_write(lwsi,(unsigned char*) message->payload + LWS_PRE, message->length, LWS_WRITE_TEXT);
+			/* break out if its null */
+			if(!message) {
+                lwsl_debug("No message to send\n");
+                break;
+            }
+			lwsl_info("Message is: %s\n", message);
 
-                    if ( n < 0 ) { /* fatal error - connection needs closing */
-                        lwsl_info("%s: WRITEABLE: %d\n", __func__, n);
-                        return -1;
-                    }
+			/* copy it into a suitable place with preamble */
+			unsigned char* carrier = malloc(sizeof(struct websocket_message) + LWS_PRE + 1);
+			unsigned char* carried_message = memcpy(carrier+LWS_PRE, message, sizeof(struct websocket_message));
 
-                } else { /* null payload */
-                    lwsl_err("%s: NULL payload: worst = %d, pss->tail = %d\n", __func__, oldest_tail, session_data->tail);
-                }
-                
-                if(!lws_ring_consume(ws->ring, &session_data->tail, NULL, 1))
-                    break;
-            } while (!lws_send_pipe_choked(lwsi));
-            
+			n = lws_write(lwsi,carried_message, message->length, LWS_WRITE_TEXT);
+
+			if ( n < (int) message->length ) { /* fatal error - connection needs closing */
+				lwsl_err("%s: Failed to write to websocket: %d\n", __func__, n);
+				return -1;
+			}
+
+			lws_ring_consume_and_update_oldest_tail(
+				ws->ring,
+				struct websocket_per_session_data,
+				&session_data->tail,
+				1,
+				context_data->head,
+				tail,
+				next
+			);
+
+			free(carrier);
+            break;
+
+        case LWS_CALLBACK_EVENT_WAIT_CANCELLED:
+            lwsl_debug("Woken up!\n");
+            if(session_data)
+                lws_callback_on_writable(session_data->lwsi);
             break;
 
         case LWS_CALLBACK_RECEIVE:
             lwsl_notice("Received: %s\n", in);
-            break;
-
-        case LWS_CALLBACK_CLOSED:
             break;
 
         default:
@@ -174,6 +188,7 @@ static const struct lws_protocols protocols[] = {
 	WEBSOCKET_PROTOCOL
 };
 
+/*
 int websocket_init_protocol( struct lws_context *context, struct lws_plugin_capability *capability) {    
     if (capability->api_magic != LWS_PLUGIN_API_MAGIC) {
 		lwsl_err("Plugin API %d, library API %d", LWS_PLUGIN_API_MAGIC,
@@ -188,9 +203,27 @@ int websocket_init_protocol( struct lws_context *context, struct lws_plugin_capa
     
     return 0;
 }
+*/
 
 int websocket_destroy_protocol( struct lws_context *context ) {
 
     return 0;
 }
 
+/* PRIVATE IMPLEMENATION */
+
+/* recursive function to delete a session from the session linked list */
+static struct websocket_per_session_data* delete_session(
+        struct websocket_per_session_data* head, 
+        struct websocket_per_session_data* x) {
+    struct websocket_per_session_data* next;
+    if ( head == NULL) { // Found the tail
+        return NULL;
+    } else if (head == x) { // Found one to delete
+        next = head->next;
+        return next;
+    } else { // Just keep going
+        head->next = delete_session(head->next, x);
+        return head;
+    }
+}

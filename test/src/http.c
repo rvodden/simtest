@@ -5,7 +5,7 @@
 #include "http.h"
 #include "websocket.h"
 
-#define LOCAL_RESOURCE_PATH "/Users/voddenr/eclipse-workspace/simtest/test/resources/"
+#define LOCAL_RESOURCE_PATH "/Users/lonrv1/Documents/Source/simtest/test/resources"
 #define CONTEXT_PATH "/"
 char *resource_path = LOCAL_RESOURCE_PATH;
 
@@ -67,14 +67,12 @@ static int http_callback(struct lws *wsi, enum lws_callback_reasons reason,
     }
 }
 
-struct lws_context* http_init( struct simulator* simulator  ) {
+struct lws_context* http_init( struct websocket_context_data* context_data ) {
     int uid = -1, gid = -1;
     int opts = 0;
 
     struct lws_context_creation_info info;
     struct lws_context *context;
-
-    struct websocket_per_vhost_data *wpvd;
 
     memset(&info, 0, sizeof info);
     info.port = 7681;
@@ -83,8 +81,8 @@ struct lws_context* http_init( struct simulator* simulator  ) {
             LLL_ERR |
             LLL_WARN |
             LLL_NOTICE |
-            LLL_INFO 
-  //          LLL_DEBUG |
+            LLL_INFO |
+            LLL_DEBUG
   //          LLL_PARSER |
   //          LLL_HEADER |
   //          LLL_EXT |
@@ -103,11 +101,7 @@ struct lws_context* http_init( struct simulator* simulator  ) {
     info.gid = gid;
     info.uid = uid;
 
-    wpvd = malloc(sizeof(struct websocket_per_vhost_data));
-    memset(wpvd, 0, sizeof(struct websocket_per_vhost_data));
-    wpvd->ring = simulator->ring;
-
-    info.user = wpvd;
+    info.user = context_data;
 
     info.extensions = exts;
     info.timeout_secs = 5;
@@ -117,5 +111,6 @@ struct lws_context* http_init( struct simulator* simulator  ) {
     info.protocols = protocols;
 
     context = lws_create_context(&info);
+    context_data->context = context;
     return context;
 } 

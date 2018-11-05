@@ -7,6 +7,9 @@ OPT=s
 # Define all source files.
 SRC=$(call rwildcard, $(SRCDIR), *.c)
 
+# Define all header files.
+HDR=$(call rwildcard, $(SRCDIR), *.h)
+
 # Define all object files.
 OBJ=$(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
@@ -14,14 +17,14 @@ OBJ=$(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 MATH_LIB=-lm
 SIMAVR_LIB=-lsimavr -lelf
 OPENSSL_LIB=-L/usr/local/opt/openssl/lib
-WEBSOCKETS_LIB=-L/opt/libwebsockets/lib -lwebsockets
+WEBSOCKETS_LIB=-L/usr/local/lib -lwebsockets -luv
 
 # Define header directories.
 VPATH=$(call uniq,$(dir $(SRC)))
 EXTRAINCDIRS=$(call uniq,$(dir $(call rwildcard,$(SRCDIR),*.h)))
-SIMAVR_HEADERS=/Users/voddenr/eclipse-workspace/simavr/simavr/sim
+SIMAVR_HEADERS=../../simavr/simavr/sim
 OPENSSL_HEADERS=/usr/local/opt/openssl/include
-WEBSOCKETS_HEADERS=/opt/libwebsockets/include
+WEBSOCKETS_HEADERS=/usr/local/include/
 
 CSTANDARD= -std=gnu99
 
@@ -30,6 +33,7 @@ CSTANDARD= -std=gnu99
 CFLAGS = -O$(OPT)
 CFLAGS += -pedantic
 CFLAGS += -Wall
+CFLAGS += -v
 CFLAGS += -Wextra
 CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wmissing-prototypes
@@ -39,6 +43,7 @@ CFLAGS += -Wno-zero-length-array
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += -I$(SIMAVR_HEADERS)
 CFLAGS += -I$(OPENSSL_HEADERS)
+CFLAGS += -I$(WEBSOCKETS_HEADERS)
 CFLAGS += $(CSTANDARD)
 
 # Linker Options
@@ -96,7 +101,7 @@ $(TARGET): $$(OBJ)
 
 # Compile: create object files from C source files.
 $(OBJDIR)/%.o : %.c
-	@echo -n Compiling $^ to object file...
+	@echo -n Compiling $@...
 	@mkdir -p $(dir $@)
 	@$(CC) -c $(ALL_CFLAGS) $< -o $@
 	@echo done.
@@ -115,12 +120,20 @@ clean_list :
 # Include the dependency files.
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
 
+analysis: cscope.out compile_commands.json
+
 compile_commands.json: Makefile
-	$(MAKE) clean
-	$(BEAR) -v --cdb $@ $(MAKE)
+	@$(MAKE) clean
+	@$(BEAR) -v --cdb $@ $(MAKE)
+
+cscope.files: $(SRC) $(HDR)
+	@echo $(SRC) $(HDR) > cscope.files
+
+cscope.out: cscope.files
+	@cscope -q -R -b -i cscope.files
 
 # Listing of phony targets.
-.PHONY : all gccversion build clean clean_list debug
+.PHONY : all gccversion build clean clean_list debug analysis
 
 # Make does not offer a recursive wildcard function, so here's one:
 define rwildcard=

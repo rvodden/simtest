@@ -4,37 +4,38 @@
    4               	__SREG__ = 0x3f
    5               	__tmp_reg__ = 0
    6               	__zero_reg__ = 1
-   7               		.section	.text.startup,"ax",@progbits
-   8               	.global	main
-  10               	main:
-  11               	/* prologue: function */
-  12               	/* frame size = 0 */
-  13               	/* stack size = 0 */
-  14               	.L__stack_usage = 0
-  15 0000 8FEF      		ldi r24,lo8(-1)
-  16 0002 87BB      		out 0x17,r24
-  17 0004 18BA      		out 0x18,__zero_reg__
-  18 0006 81E0      		ldi r24,lo8(1)
-  19               	.L2:
-  20 0008 86BB      		out 0x16,r24
-  21 000a 2FE7      		ldi r18,lo8(399999)
-  22 000c 3AE1      		ldi r19,hi8(399999)
-  23 000e 96E0      		ldi r25,hlo8(399999)
-  24 0010 2150      	1:	subi r18,1
-  25 0012 3040      		sbci r19,0
-  26 0014 9040      		sbci r25,0
-  27 0016 01F4      		brne 1b
-  28 0018 00C0      		rjmp .
-  29 001a 0000      		nop
-  30 001c 00C0      		rjmp .L2
-  32               		.ident	"GCC: (GNU) 7.2.0"
+   7               		.text
+   8               		.section	.text.startup,"ax",@progbits
+   9               	.global	main
+  11               	main:
+  12               	/* prologue: function */
+  13               	/* frame size = 0 */
+  14               	/* stack size = 0 */
+  15               	.L__stack_usage = 0
+  16 0000 8FEF      		ldi r24,lo8(-1)
+  17 0002 87BB      		out 0x17,r24
+  18 0004 18BA      		out 0x18,__zero_reg__
+  19 0006 81E0      		ldi r24,lo8(1)
+  20               	.L2:
+  21 0008 86BB      		out 0x16,r24
+  22 000a 2FEF      		ldi r18,lo8(1599999)
+  23 000c 39E6      		ldi r19,hi8(1599999)
+  24 000e 98E1      		ldi r25,hlo8(1599999)
+  25 0010 2150      	1:	subi r18,1
+  26 0012 3040      		sbci r19,0
+  27 0014 9040      		sbci r25,0
+  28 0016 01F4      		brne 1b
+  29 0018 00C0      		rjmp .
+  30 001a 0000      		nop
+  31 001c 00C0      		rjmp .L2
+  33               		.ident	"GCC: (GNU) 7.3.0"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 main.c
-/var/folders/_l/ll94mrj54q98jz2pbsbvqsmc0000gn/T//ccp2QNJB.s:2      *ABS*:000000000000003e __SP_H__
-/var/folders/_l/ll94mrj54q98jz2pbsbvqsmc0000gn/T//ccp2QNJB.s:3      *ABS*:000000000000003d __SP_L__
-/var/folders/_l/ll94mrj54q98jz2pbsbvqsmc0000gn/T//ccp2QNJB.s:4      *ABS*:000000000000003f __SREG__
-/var/folders/_l/ll94mrj54q98jz2pbsbvqsmc0000gn/T//ccp2QNJB.s:5      *ABS*:0000000000000000 __tmp_reg__
-/var/folders/_l/ll94mrj54q98jz2pbsbvqsmc0000gn/T//ccp2QNJB.s:6      *ABS*:0000000000000001 __zero_reg__
-/var/folders/_l/ll94mrj54q98jz2pbsbvqsmc0000gn/T//ccp2QNJB.s:10     .text.startup:0000000000000000 main
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:2      *ABS*:000000000000003e __SP_H__
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:3      *ABS*:000000000000003d __SP_L__
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:4      *ABS*:000000000000003f __SREG__
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:5      *ABS*:0000000000000000 __tmp_reg__
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:6      *ABS*:0000000000000001 __zero_reg__
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:11     .text.startup:0000000000000000 main
 
 NO UNDEFINED SYMBOLS

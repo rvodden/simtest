@@ -4,6 +4,7 @@ FORMAT=ihex
 
 OBJDIR=target
 SRCDIR=src
+DEPDIR=.dep
 TARGET=$(OBJDIR)/main
 
 OPT=s
@@ -71,7 +72,7 @@ HEAD = head
 MAKE = make
 
 # Compiler flags to generate dependency files.
-GENDEPFLAGS = -MMD -MP -MF .dep/$(@F).d
+GENDEPFLAGS = -MMD -MP -MF $(DEPDIR)/$(@F).d
 
 # Combine all necessary flags and optional flags.
 # Add target processor to flags.
@@ -157,7 +158,7 @@ extcoff: $(TARGET).elf
 .PRECIOUS : $$(OBJ)
 %.elf: $$(OBJ)
 	@echo -n Creating $@ from object files...
-	@$(CC) $(ALL_CFLAGS) $^ --output $@ $(LDFLAGS)
+	@$(CC) $(ALL_CFLAGS) $^ --output $@ $(LDFLAGS)  
 	@echo done.
 
 # Compile: create object files from C source files.

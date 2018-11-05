@@ -17,7 +17,7 @@
 struct websocket_instance;
 
 struct websocket_message {
-    char* payload;
+    char* payload[32];
     size_t length;
 };
 
@@ -32,14 +32,14 @@ struct websocket_per_session_data {
 };
 
 /* per vshost data - in this case a linked list of websocket instances */
-struct websocket_per_vhost_data {
+struct websocket_context_data {
+    struct lws_context* context;
     struct lws_ring* ring;
-    struct websocket_per_session_data* head;
+    struct websocket_per_session_data* head; /* linked list of sessions */
 };
 
 int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len);
-int websocket_init_protocol( struct lws_context*, struct lws_plugin_capability* );
 int websocket_destroy_protocol( struct lws_context* );
-int websocket_send_message( struct lws*, struct websocket_message* );
+void websocket_callback_all_in_context_on_writeable( struct websocket_context_data* context_data );
 void websocket_destroy_message(void *_msg);
 

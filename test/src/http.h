@@ -2,5 +2,5 @@
 #include <libwebsockets.h>
 #include "simulator.h"
 
-struct lws_context* http_init( struct simulator* );
+struct lws_context* http_init( struct websocket_context_data* );
 void http_run ( struct lws_context* );
