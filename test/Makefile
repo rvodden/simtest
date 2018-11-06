@@ -1,5 +1,6 @@
 OBJDIR=target
 SRCDIR=src
+RESDIR=resources
 TARGET=$(OBJDIR)/main
 
 OPT=s
@@ -10,21 +11,29 @@ SRC=$(call rwildcard, $(SRCDIR), *.c)
 # Define all header files.
 HDR=$(call rwildcard, $(SRCDIR), *.h)
 
-# Define all object files.
+# Define all object files generated from c sources
 OBJ=$(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+
+# Define all resource files.
+RES +=$(call rwildcard, $(RESDIR), *.html)
+RES +=$(call rwildcard, $(RESDIR), *.js)
+RES +=$(call rwildcard, $(RESDIR), *.css)
+
+# Define all object files generated from c sources
+OBJRES=$(RES:$(RESDIR)/%=$(OBJDIR)/%.ro)
 
 # Library Options
 MATH_LIB=-lm
-SIMAVR_LIB=-lsimavr -lelf
+SIMAVR_LIB=-L../../simavr/simavr/obj-x86_64-redhat-linux -lsimavr -lelf
 OPENSSL_LIB=-L/usr/local/opt/openssl/lib
-WEBSOCKETS_LIB=-L/usr/local/lib -lwebsockets -luv
+WEBSOCKETS_LIB=-L/opt/libwebsockets/lib -lwebsockets -luv
 
 # Define header directories.
 VPATH=$(call uniq,$(dir $(SRC)))
 EXTRAINCDIRS=$(call uniq,$(dir $(call rwildcard,$(SRCDIR),*.h)))
 SIMAVR_HEADERS=../../simavr/simavr/sim
 OPENSSL_HEADERS=/usr/local/opt/openssl/include
-WEBSOCKETS_HEADERS=/usr/local/include/
+WEBSOCKETS_HEADERS=/opt/libwebsockets/include/
 
 CSTANDARD= -std=gnu99
 
@@ -33,7 +42,6 @@ CSTANDARD= -std=gnu99
 CFLAGS = -O$(OPT)
 CFLAGS += -pedantic
 CFLAGS += -Wall
-CFLAGS += -v
 CFLAGS += -Wextra
 CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wmissing-prototypes
@@ -41,13 +49,13 @@ CFLAGS += -Wunreachable-code
 CFLAGS += -Wsign-compare
 CFLAGS += -Wno-zero-length-array
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
-CFLAGS += -I$(SIMAVR_HEADERS)
-CFLAGS += -I$(OPENSSL_HEADERS)
-CFLAGS += -I$(WEBSOCKETS_HEADERS)
+CFLAGS += -isystem $(SIMAVR_HEADERS)
+CFLAGS += -isystem $(OPENSSL_HEADERS)
+CFLAGS += -isystem $(WEBSOCKETS_HEADERS)
 CFLAGS += $(CSTANDARD)
 
 # Linker Options
-LDFLAGS = -Wl 
+LDFLAGS = -lpthread
 LDFLAGS += $(patsubst %,-L%,$(EXTRALIBDIRS))
 LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB) $(SIMAVR_LIB) 
 LDFLAGS += $(OPENSSL_LIB) $(WEBSOCKETS_LIB)
@@ -63,6 +71,7 @@ AVRDUDE = avrdude
 REMOVE = rm -f
 REMOVEDIR = rm -rf
 NM = nm
+LD = ld
 COPY = cp
 BEAR = bear
 HEAD = head
@@ -89,21 +98,32 @@ build: $(TARGET)
 gccversion :
 	@echo -n "Using "
 	@$(CC) --version | $(HEAD) -1
+	@echo $(OBJ)
+	@echo $(SRC)
+	@echo $(OBJRES)
 
 # Link: create ELF output file from object files.
 .SECONDEXPANSION:
 .SECONDARY : $(TARGET)
-.PRECIOUS : $$(OBJ)
-$(TARGET): $$(OBJ)
+.PRECIOUS : $$(OBJ) $$(OBJRES)
+$(TARGET): $$(OBJ) $$(OBJRES)
 	@echo -n Creating $@ from object files...
 	@$(CC) $(ALL_CFLAGS) $^ --output $@ $(LDFLAGS)
 	@echo done.
 
 # Compile: create object files from C source files.
-$(OBJDIR)/%.o : %.c
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@echo -n Compiling $@...
 	@mkdir -p $(dir $@)
 	@$(CC) -c $(ALL_CFLAGS) $< -o $@
+	@echo done.
+
+# Data: create object files from text resource files.
+# TODO: right now the entire folder is rebuilt if
+# one thing changes - we can do better than that.
+$(OBJDIR)/%.ro : $(RESDIR)/%
+	@echo -n Creating $@ from resource files...
+	@$(LD) -r -b binary $< -o $@
 	@echo done.
 
 # Target: clean project.
@@ -143,4 +163,5 @@ endef
 define uniq=
 	$(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 endef
+
 

@@ -4,7 +4,7 @@
 #include "websocket.h"
 #include "http.h"
 
-void sighandler(int);
+static void sighandler(int);
 
 static void signal_cb(void*, int);
 static void* avr_run_thread(void*);
@@ -18,23 +18,11 @@ static void* avr_run_thread(void *param) {
     return NULL;
 }
 
-void sighandler(int sig)
-{
-	signal_cb(NULL, sig);
-}
+static int interrupted;
 
-static void signal_cb(void *handle, int signum)
+static void sighandler(int sig)
 {
-    lwsl_err("Signal %d caught, exiting...\n", signum);
-    switch (signum) {
-        case SIGTERM:
-        case SIGINT:
-            break;
-        default:
-
-            break;
-    }
-    lws_context_destroy(context);
+    interrupted = 1;
 }
 
 int main ( void ) 
@@ -63,11 +51,13 @@ int main ( void )
     pthread_create(&run, NULL, avr_run_thread, simulator);
 
 
-    while (!lws_service(context, 0));
+    while (!interrupted) 
+        if(lws_service(context, 1000))
+            interrupted = 1;
 	
-    pthread_cancel(run);
     
     /* when we decided to exit the event loop */
+    pthread_cancel(run);
 	lws_context_destroy(context);
 	lwsl_notice("libwebsockets-test-server exited cleanly\n");
 

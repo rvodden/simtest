@@ -30,8 +30,8 @@
 0000003d a __SP_L__
 0000003e a __SP_H__
 0000003f a __SREG__
-0000004e T _exit
 0000004e W exit
+0000004e T _exit
 00000050 t __stop_program
 00000052 A __data_load_end
 00000052 A __data_load_start
