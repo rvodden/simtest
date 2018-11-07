@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <libwebsockets.h>
 
 #include "http.h"
@@ -68,13 +69,44 @@ static int http_callback(struct lws *wsi, enum lws_callback_reasons reason,
 #endif
 
         case LWS_CALLBACK_HTTP:
-            lwsl_debug("Received HTTP Callback\n");
+            lwsl_debug("Received HTTP request.\n");
+            int status;
+            char *mime_type;
+            char *requested_uri = (char *) in;
+            lwsl_debug("Requested URI: %s\n", requested_uri);
             lws_snprintf(per_session_data->path, sizeof(per_session_data->path), "%s", (const char*) in);
-            if(lws_add_http_common_headers(wsi, HTTP_STATUS_OK, "text/html", LWS_ILLEGAL_HTTP_CONTENT_LEN, &p, end))
+           
+            /* TODO: find a way to autogenerate this bit */
+
+            if (strncmp("index.html", requested_uri, sizeof("index.html")) == 0) {
+                per_session_data->message = &_binary_resources_index_html_start;
+                per_session_data->length = _binary_resources_index_html_size;
+                status = HTTP_STATUS_OK;
+                mime_type = "text/html";
+            } else if (strncmp("style.css", requested_uri, sizeof("style.css")) == 0) {
+                per_session_data->message = &_binary_resources_style_css_start;
+                per_session_data->length = _binary_resources_style_css_size;
+                status = HTTP_STATUS_OK;
+                mime_type = "text/css";
+            } else if (strncmp("app.js", requested_uri, sizeof("app.js")) == 0) {
+                per_session_data->message = &_binary_resources_app_js_start;
+                per_session_data->length = _binary_resources_app_js_size;
+                status = HTTP_STATUS_OK;
+                mime_type = "text/javascript";
+            } else {
+                lwsl_debug("%s not found.\n", requested_uri); 
+                per_session_data->message = NULL;
+                per_session_data->length = 0;
+                status = HTTP_STATUS_NOT_FOUND;
+            }
+            
+            if(lws_add_http_common_headers(wsi, status, mime_type, LWS_ILLEGAL_HTTP_CONTENT_LEN, &p, end))
                 return 1;
 
             if(lws_finalize_write_http_header(wsi, start, &p, end))
                 return 1;
+
+            /* stop autogeneration */
 
             lws_callback_on_writable(wsi);
 
@@ -84,25 +116,26 @@ static int http_callback(struct lws *wsi, enum lws_callback_reasons reason,
             lwsl_debug("Received HTTP Callback writable\n");
             if (!per_session_data)
                 break;
-            
-            uint16_t _binary_resources_index_html_size = _binary_resources_index_html_end - _binary_resources_index_html_start;          
-            lwsl_debug("Writing %d bytes of data", _binary_resources_index_html_size);
-            
-            memcpy(p, _binary_resources_index_html_start, _binary_resources_index_html_size);
-            
-            p += _binary_resources_index_html_size;
-            
-            if(lws_write(wsi, start, lws_ptr_diff(p, start), LWS_WRITE_HTTP_FINAL) != lws_ptr_diff(p,start)) {
-                lwsl_debug("Could not write");
+           
+            if (per_session_data->length >0 ) { 
+                lwsl_debug("Writing %d bytes of data\n", per_session_data->length);
+                p += lws_snprintf(p, per_session_data->length, "%s", per_session_data->message);
+            }
+
+            int length = lws_ptr_diff(p, start) - 1;
+            lwsl_debug("Length of message: %d\n", length);
+            if(lws_write(wsi, start, length, LWS_WRITE_HTTP_FINAL) != length) {
+                lwsl_debug("Could not write\n");
                 return 1;
             }
 
             if(lws_http_transaction_completed(wsi)) {
-                lwsl_debug("Transaction must close now");
+                lwsl_debug("Transaction must close now\n");
                 return -1;
             }
 
-            return 0;
+            /* right now we return the entire doc in one go */
+            return 1;
         default:
             break;
     }
