@@ -8,7 +8,7 @@
 struct simulator {
     avr_t*           avr;
     struct lws_ring* ring;
-    struct websocket_context_data* context_data;
+    struct lws_context* context;
     pthread_mutex_t  lock_ring;
 };
 

@@ -6,7 +6,6 @@
 
 static void sighandler(int);
 
-static void signal_cb(void*, int);
 static void* avr_run_thread(void*);
 
 static struct lws_context *context;
@@ -28,28 +27,22 @@ static void sighandler(int sig)
 int main ( void ) 
 {
     struct simulator *simulator;
-    struct websocket_context_data* context_data;
 
     simulator = simulator_init();
     
-    context_data = malloc(sizeof(struct websocket_context_data));
-    memset(context_data, 0, sizeof(struct websocket_context_data));
-    context_data->ring = simulator->ring;
-
-    context = http_init(context_data); 
+    context = http_init(simulator); 
     
-    if (context == NULL) {
+    if (!context) {
         lwsl_err("libwebsocket init failed\n");
         return -1;
     }
 
-    simulator->context_data = context_data;
+    simulator->context = context;
 
     signal(SIGINT, sighandler);
     
     pthread_t run;
     pthread_create(&run, NULL, avr_run_thread, simulator);
-
 
     while (!interrupted) 
         if(lws_service(context, 1000))
@@ -61,7 +54,6 @@ int main ( void )
 	lws_context_destroy(context);
 	lwsl_notice("libwebsockets-test-server exited cleanly\n");
 
-    free(context_data);
     simulator_destroy(simulator);
 
 	return 0;

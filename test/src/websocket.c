@@ -5,9 +5,6 @@
 #include "websocket.h"
 #include "simulator.h"
 
-static int num_wsi = 0;
-static char* message_buffer;
-
 #define WEBSOCKET_QUEUE_LENGTH 32
 
 /* queue free space below this, rx flow is disabled */
@@ -16,9 +13,13 @@ static char* message_buffer;
 #define WEBSOCKET_RXFLOW_MAX ((2 * WEBSOCKET_QUEUE_LENGTH) / 3)
 
 /* Data for an instance of the websocket protocol */
-struct websocket_instance {
+struct websocket_context_data {
+    struct lws_context *context;
     struct lws_ring *ring;
     pthread_mutex_t* lock_ring;
+
+    struct websocket_per_session_data *psd_list;
+
     int message_allocated;
     char rx_enabled;
 };
@@ -37,32 +38,13 @@ void websocket_destroy_message(void *_msg)
     // free(msg);
 }
 
-static struct websocket_context_data* get_vhost_data( struct lws* lwsi ) {
-    return ( struct websocket_context_data   * ) lws_protocol_vh_priv_get (
-                lws_get_vhost(lwsi),
-                lws_get_protocol(lwsi)
-                );
-}
-
-void websocket_callback_all_in_context_on_writeable( struct websocket_context_data* context_data ) {
-
-    lwsl_info("Send message\n");
-    struct websocket_per_session_data* session_data = context_data->head;
-    while (session_data) {
-        lwsl_info("Sending to: %p\n", session_data->lwsi);
-        lws_cancel_service(context_data->context);
-        session_data = session_data->next;
-    }
-}
-
 int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
     /* grab the per session data, and the per vhost data */
     struct websocket_per_session_data *session_data = ( struct websocket_per_session_data * ) user;
-    struct websocket_context_data *context_data = lws_context_user( lws_get_context(lwsi) );
+    struct lws_context* context = lws_get_context(lwsi);
+    struct websocket_context_data *context_data = lws_context_user( context );
 
-    struct websocket_instance *ws = lws_get_protocol(lwsi);
-    
     switch (reason) {
 
         case LWS_CALLBACK_PROTOCOL_INIT:
@@ -72,83 +54,93 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
             if(!context_data) {
                 lwsl_err("Cannot allocate context data");
                 return 1;
-            }  
+            }
+
+            context_data->context = context;
+            
             break;
             
         case LWS_CALLBACK_PROTOCOL_DESTROY:
-            free(ws);
             break;
 
         case LWS_CALLBACK_ESTABLISHED:
             lwsl_info("New websocket protocol connection received\n");
             
             /* tell this session about our protocol instance, lws instance, and point at the tail of the buffer */
-            session_data->ws = ws;
-            session_data->ws->ring = context_data->ring;
             session_data->lwsi = lwsi;
             session_data->tail = lws_ring_get_oldest_tail(context_data->ring);
 
             /* stick this session at the front of the list */
-            session_data->next = context_data->head;
-            context_data->head = session_data;
+            session_data->next = context_data->psd_list;
+            context_data->psd_list = session_data;
             break;
 
         case LWS_CALLBACK_CLOSED:
             /* remove session from the list */
-            context_data->head = delete_session(context_data->head, session_data);
+            context_data->psd_list = delete_session(context_data->psd_list, session_data);
             break;
 
         case LWS_CALLBACK_SERVER_WRITEABLE:
             /* we'll get a callback with this code whenever there
              * is something to send */
             lwsl_notice("Sending a message\n");
-            
-            uint32_t oldest_tail = lws_ring_get_oldest_tail(ws->ring);
-            struct websocket_message* message;
-            int n;
+            pthread_mutex_lock(context_data->lock_ring);
 
 			/* grab the message which is at the tail position for this session */
-			message = ( struct websocket_message* ) lws_ring_get_element( ws->ring, &(session_data->tail) );
+			struct websocket_message* message = ( struct websocket_message* ) lws_ring_get_element( context_data->ring, &(session_data->tail) );
 
 			/* break out if its null */
 			if(!message) {
                 lwsl_debug("No message to send\n");
+                pthread_mutex_unlock(context_data->lock_ring);
                 break;
             }
-			lwsl_info("Message is: %s\n", message);
+			lwsl_info("Message is: %s\n", message->payload);
+           
 
 			/* copy it into a suitable place with preamble */
+            /* TODO: refactor this so we don't have a malloc on every message send */
+            int number_of_sent_characters;
 			unsigned char* carrier = malloc(sizeof(struct websocket_message) + LWS_PRE + 1);
 			unsigned char* carried_message = memcpy(carrier+LWS_PRE, message, sizeof(struct websocket_message));
+			number_of_sent_characters = lws_write(lwsi,carried_message, message->length, LWS_WRITE_TEXT);
+			free(carrier);
 
-			n = lws_write(lwsi,carried_message, message->length, LWS_WRITE_TEXT);
-
-			if ( n < (int) message->length ) { /* fatal error - connection needs closing */
-				lwsl_err("%s: Failed to write to websocket: %d\n", __func__, n);
+			if ( number_of_sent_characters < (int) message->length ) { /* fatal error - connection needs closing */
+				lwsl_err("%s: Failed to write to websocket: %d\n", __func__, number_of_sent_characters);
+                pthread_mutex_unlock(context_data->lock_ring);
 				return -1;
 			}
 
 			lws_ring_consume_and_update_oldest_tail(
-				ws->ring,
+				context_data->ring,
 				struct websocket_per_session_data,
 				&session_data->tail,
 				1,
-				context_data->head,
+				context_data->psd_list,
 				tail,
 				next
 			);
-
-			free(carrier);
+            
+            if(lws_ring_get_element( context_data->ring, &(session_data->tail))) {
+                /* more to send */
+                lws_callback_on_writable(session_data->lwsi);
+            }
+            pthread_mutex_unlock(context_data->lock_ring);
             break;
 
         case LWS_CALLBACK_EVENT_WAIT_CANCELLED:
             lwsl_debug("Woken up!\n");
-            if(session_data)
-                lws_callback_on_writable(session_data->lwsi);
+            /* send a writable event on each session */
+            struct websocket_per_session_data* session = context_data->psd_list;
+            while (session) {
+                lws_callback_on_writable(session->lwsi);
+                session = session->next;
+            }
             break;
 
         case LWS_CALLBACK_RECEIVE:
-            lwsl_notice("Received: %s\n", in);
+            lwsl_notice("Received: %s\n", (char *)in);
             break;
 
         default:
@@ -158,56 +150,14 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
 
     return 0;
 }
-/*
-int websocket_send_message( struct lws* lwsi, struct websocket_message* message ) {
-    struct websocket_per_vhost_data   *wpvd = 
-        ( struct websocket_per_vhost_data   * ) lws_protocol_vh_priv_get (
-                lws_get_vhost(lwsi),
-                lws_get_protocol(lwsi)
-                );
-    
-    struct lws_ring* ring = wpvd->ring;
-    
-    pthread_mutex_lock(&wpvd->lock_ring);
-    int n = (int) lws_ring_get_count_free_elements(ring);
 
-    if (!n) {
-        lwsl_notice("Ring full, dropping message");
-        return -1;
-    }
-    
-    lws_ring_insert( ring, message, 1 );
+struct websocket_context_data* create_websocket_context_data(struct simulator* simulator) {
+    struct websocket_context_data* websocket_context_data = malloc(sizeof(struct websocket_context_data));
+    memset(websocket_context_data, 0, sizeof(struct websocket_context_data));
+    websocket_context_data->ring = simulator->ring;
+    websocket_context_data->lock_ring = &simulator->lock_ring;
 
-    pthread_mutex_unlock(&wpvd->ws->lock_ring);
-}
-*/
-/* This little lot is only used if the protocol is linked dynamically */
-
-/* List of protocols supported by this plugin */
-static const struct lws_protocols protocols[] = {
-	WEBSOCKET_PROTOCOL
-};
-
-/*
-int websocket_init_protocol( struct lws_context *context, struct lws_plugin_capability *capability) {    
-    if (capability->api_magic != LWS_PLUGIN_API_MAGIC) {
-		lwsl_err("Plugin API %d, library API %d", LWS_PLUGIN_API_MAGIC,
-			 capability->api_magic);
-		return 1;
-	}
-   
-    capability->protocols = protocols;
-    capability->count_protocols = 1;
-    capability->extensions = NULL;
-    capability->count_extensions = 0;
-    
-    return 0;
-}
-*/
-
-int websocket_destroy_protocol( struct lws_context *context ) {
-
-    return 0;
+    return websocket_context_data;
 }
 
 /* PRIVATE IMPLEMENATION */

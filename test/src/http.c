@@ -118,8 +118,8 @@ static int http_callback(struct lws *wsi, enum lws_callback_reasons reason,
                 break;
            
             if (per_session_data->length >0 ) { 
-                lwsl_debug("Writing %d bytes of data\n", per_session_data->length);
-                p += lws_snprintf(p, per_session_data->length, "%s", per_session_data->message);
+                lwsl_debug("Writing %d bytes of data\n", (int)per_session_data->length);
+                p += (unsigned int)lws_snprintf(p, per_session_data->length, "%s", per_session_data->message);
             }
 
             int length = lws_ptr_diff(p, start) - 1;
@@ -143,12 +143,13 @@ static int http_callback(struct lws *wsi, enum lws_callback_reasons reason,
     return lws_callback_http_dummy(wsi, reason, user, in, len);
 }
 
-struct lws_context* http_init( struct websocket_context_data* context_data ) {
+struct lws_context* http_init( struct simulator* simulator ) {
     int uid = -1, gid = -1;
     int opts = 0;
 
     struct lws_context_creation_info info;
     struct lws_context *context;
+    struct websocket_context_data* websocket_context_data;
 
     memset(&info, 0, sizeof info);
     info.port = 7681;
@@ -168,6 +169,10 @@ struct lws_context* http_init( struct websocket_context_data* context_data ) {
             , NULL); /* debug */
 
     lwsl_notice("Richard's Simulator\n");
+    
+    websocket_context_data = create_websocket_context_data(simulator);
+
+    info.user = websocket_context_data;
 
     info.max_http_header_pool = 16;
     info.options = opts |
@@ -178,7 +183,7 @@ struct lws_context* http_init( struct websocket_context_data* context_data ) {
     info.uid = uid;
     info.mounts = &mount;
 
-    info.user = context_data;
+    info.user = websocket_context_data;
 
     info.extensions = exts;
     info.timeout_secs = 5;
@@ -186,7 +191,7 @@ struct lws_context* http_init( struct websocket_context_data* context_data ) {
     info.protocols = protocols;
 
     context = lws_create_context(&info);
-    context_data->context = context;
+    
     return context;
 }
 

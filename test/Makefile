@@ -47,7 +47,6 @@ CFLAGS += -Wstrict-prototypes
 CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wunreachable-code
 CFLAGS += -Wsign-compare
-CFLAGS += -Wno-zero-length-array
 CFLAGS += $(patsubst %,-I%,$(EXTRAINCDIRS))
 CFLAGS += -isystem $(SIMAVR_HEADERS)
 CFLAGS += -isystem $(OPENSSL_HEADERS)

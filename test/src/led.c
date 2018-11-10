@@ -23,8 +23,6 @@ void
 led_switch( struct avr_irq_t * irq, uint32_t value, void * param ) {
     struct simulator *simulator = (struct simulator*) param;
    
-    if(!simulator->context_data->head) return;
-
     struct websocket_message*  message = malloc(sizeof(struct websocket_message));
     memset(message, 0, sizeof(struct websocket_message));
 
@@ -44,10 +42,15 @@ led_switch( struct avr_irq_t * irq, uint32_t value, void * param ) {
     message->length = strlen(message->payload);
 
     pthread_mutex_lock(&simulator->lock_ring);
+    if(!lws_ring_get_count_free_elements(simulator->ring)) {
+        lwsl_user("Dropping as no space in the ring buffer.\n");
+    }
+    
     lws_ring_insert(simulator->ring, message, sizeof(message));
+    lwsl_debug("Cancelling service on context: %p\n", (void *)simulator->context);
+    lws_cancel_service(simulator->context);
     pthread_mutex_unlock(&simulator->lock_ring);
 
-    websocket_callback_all_in_context_on_writeable(simulator->context_data);
 }
 
 

@@ -1,7 +1,11 @@
+#ifndef WEBSOCKET_H
+#define WEBSOCKET_H 
+
 #define LWS_DLL
 #define LWS_INTERNAL
+
 #include <libwebsockets.h>
-#include <pthread.h>
+#include "simulator.h"
 
 #define WEBSOCKET_MAX_INSTANCES 3
 
@@ -14,32 +18,28 @@
 		0, NULL, 0 \
 	}
 
-struct websocket_instance;
+struct websocket_context_data;
 
-struct websocket_message {
-    char* payload[32];
-    size_t length;
-};
-
-/* per session data - its a singly linked list so that we can 
- * traverse it in websocket send message */
+/* has to be defined here, rather than in .c like context_data as
+ * we need to tell WEBSOCKET_PROTOCOL about the size of it */
 struct websocket_per_session_data {
     struct lws *lwsi; /* link to libwebsockets instance */
-    struct websocket_instance* ws; /* link to websocket protocol instance */
     uint32_t tail; /* tail pointer in the ring buffer for this session */
 
     struct websocket_per_session_data* next;
 };
 
-/* per vshost data - in this case a linked list of websocket instances */
-struct websocket_context_data {
-    struct lws_context* context;
-    struct lws_ring* ring;
-    struct websocket_per_session_data* head; /* linked list of sessions */
+
+struct websocket_message {
+    char payload[32];
+    size_t length;
 };
 
 int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len);
 int websocket_destroy_protocol( struct lws_context* );
-void websocket_callback_all_in_context_on_writeable( struct websocket_context_data* context_data );
+void websocket_callback_all_in_context_on_writeable( struct lws_context* );
 void websocket_destroy_message(void *_msg);
 
+struct websocket_context_data* create_websocket_context_data(struct simulator* simulator);
+
+#endif  /* WEBSOCKET_H */

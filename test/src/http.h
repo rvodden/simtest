@@ -8,7 +8,7 @@ struct per_session_data {
     size_t length;
 };
 
-struct lws_context* http_init( struct websocket_context_data* );
+struct lws_context* http_init( struct simulator* );
 
 /* TODO: Find a way to dynamically generate this part */
 
