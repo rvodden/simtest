@@ -145,12 +145,11 @@ static int http_callback(struct lws *wsi, enum lws_callback_reasons reason,
 
 struct lws_context* http_init( struct simulator* simulator ) {
     int uid = -1, gid = -1;
-    int opts = 0;
 
-    struct lws_context_creation_info info;
     struct lws_context *context;
     struct websocket_context_data* websocket_context_data;
-
+    struct lws_context_creation_info info;
+    
     memset(&info, 0, sizeof info);
     info.port = 7681;
 
@@ -175,9 +174,8 @@ struct lws_context* http_init( struct simulator* simulator ) {
     info.user = websocket_context_data;
 
     info.max_http_header_pool = 16;
-    info.options = opts |
-        LWS_SERVER_OPTION_VALIDATE_UTF8 |
-        LWS_SERVER_OPTION_LIBUV;
+    info.options |= LWS_SERVER_OPTION_VALIDATE_UTF8;
+    info.options |= LWS_SERVER_OPTION_LIBUV;
 
     info.gid = gid;
     info.uid = uid;
@@ -195,3 +193,8 @@ struct lws_context* http_init( struct simulator* simulator ) {
     return context;
 }
 
+void http_destroy( struct lws_context* context) {
+    struct websocket_context_data* context_data = lws_context_user( context );
+    destroy_websocket_context_data(context_data);
+    lws_context_destroy(context);
+}

@@ -9,6 +9,7 @@ struct per_session_data {
 };
 
 struct lws_context* http_init( struct simulator* );
+void http_destroy( struct lws_context* );
 
 /* TODO: Find a way to dynamically generate this part */
 

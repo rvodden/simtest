@@ -54,6 +54,9 @@ struct simulator* simulator_init() {
     pthread_mutex_init(&simulator->lock_ring, NULL);
     simulator->ring = lws_ring_create( sizeof(struct websocket_message), 32, websocket_destroy_message);
 
+    pthread_mutex_init(&simulator->lock_terminate, NULL);
+    simulator->terminate = 0;
+
     led_init(simulator, &led, "led");
 
     avr_connect_irq(avr_io_getirq(simulator->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 0), led.irq);
@@ -62,17 +65,32 @@ struct simulator* simulator_init() {
 }
 
 void simulator_destroy(struct simulator* simulator) {
+    lwsl_debug("Destroying the simulator\n");
+    lws_ring_destroy(simulator->ring);
+    pthread_mutex_destroy(&simulator->lock_ring);
+    led_destroy(&led);
+    avr_terminate(simulator->avr);
     free(simulator); 
 }
 
 void simulator_run(struct simulator* simulator) {
     int state = 0;
+    int terminated = 0;
 
     while (1) {
         state = avr_run(simulator->avr);
-        if (state == cpu_Done || state == cpu_Crashed)
+        pthread_mutex_lock(&simulator->lock_terminate);
+        terminated = simulator->terminate;
+        pthread_mutex_unlock(&simulator->lock_terminate);
+        if (terminated || state == cpu_Done || state == cpu_Crashed)
             break;
     }
 
-    avr_terminate(simulator->avr);
+    pthread_exit(NULL);
+}
+
+void simulator_terminate(struct simulator* simulator) {
+    pthread_mutex_lock(&simulator->lock_terminate);
+    simulator->terminate;
+    pthread_mutex_unlock(&simulator->lock_terminate);
 }

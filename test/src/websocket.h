@@ -8,6 +8,7 @@
 #include "simulator.h"
 
 #define WEBSOCKET_MAX_INSTANCES 3
+#define WEBSOCKET_MAX_MESSAGE_LENGTH 32
 
 #define WEBSOCKET_PROTOCOL \
 	{ \
@@ -31,7 +32,7 @@ struct websocket_per_session_data {
 
 
 struct websocket_message {
-    char payload[32];
+    char payload[WEBSOCKET_MAX_MESSAGE_LENGTH];
     size_t length;
 };
 
@@ -41,5 +42,6 @@ void websocket_callback_all_in_context_on_writeable( struct lws_context* );
 void websocket_destroy_message(void *_msg);
 
 struct websocket_context_data* create_websocket_context_data(struct simulator* simulator);
+void destroy_websocket_context_data(struct websocket_context_data*);
 
 #endif  /* WEBSOCKET_H */

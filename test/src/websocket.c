@@ -35,7 +35,6 @@ static struct websocket_per_session_data* delete_session(
 void websocket_destroy_message(void *_msg)
 {
 	struct websocket_message *msg = _msg;
-    // free(msg);
 }
 
 int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
@@ -95,8 +94,6 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
                 pthread_mutex_unlock(context_data->lock_ring);
                 break;
             }
-			lwsl_info("Message is: %s\n", message->payload);
-           
 
 			/* copy it into a suitable place with preamble */
             /* TODO: refactor this so we don't have a malloc on every message send */
@@ -133,9 +130,23 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
             lwsl_debug("Woken up!\n");
             /* send a writable event on each session */
             struct websocket_per_session_data* session = context_data->psd_list;
-            while (session) {
-                lws_callback_on_writable(session->lwsi);
-                session = session->next;
+
+            if(!session) {
+                /* if there aren't any sessions, kill this message */
+                lwsl_debug("No sessions!\n");
+                pthread_mutex_lock(context_data->lock_ring);
+			    lws_ring_consume(
+				    context_data->ring,
+                    NULL,
+    				NULL,
+                    1
+    			);
+                pthread_mutex_unlock(context_data->lock_ring);
+            } else {
+                while (session) {
+                    lws_callback_on_writable(session->lwsi);
+                    session = session->next;
+                }
             }
             break;
 
@@ -158,6 +169,10 @@ struct websocket_context_data* create_websocket_context_data(struct simulator* s
     websocket_context_data->lock_ring = &simulator->lock_ring;
 
     return websocket_context_data;
+}
+
+void destroy_websocket_context_data(struct websocket_context_data* context_data) {
+    free(context_data);
 }
 
 /* PRIVATE IMPLEMENATION */
