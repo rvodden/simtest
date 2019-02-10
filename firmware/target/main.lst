@@ -5,37 +5,56 @@
    5               	__tmp_reg__ = 0
    6               	__zero_reg__ = 1
    7               		.text
-   8               		.section	.text.startup,"ax",@progbits
-   9               	.global	main
-  11               	main:
-  12               	/* prologue: function */
-  13               	/* frame size = 0 */
-  14               	/* stack size = 0 */
-  15               	.L__stack_usage = 0
-  16 0000 8FEF      		ldi r24,lo8(-1)
-  17 0002 87BB      		out 0x17,r24
-  18 0004 18BA      		out 0x18,__zero_reg__
-  19 0006 81E0      		ldi r24,lo8(1)
-  20               	.L2:
-  21 0008 86BB      		out 0x16,r24
-  22 000a 2FEF      		ldi r18,lo8(1599999)
-  23 000c 39E6      		ldi r19,hi8(1599999)
-  24 000e 98E1      		ldi r25,hlo8(1599999)
-  25 0010 2150      	1:	subi r18,1
-  26 0012 3040      		sbci r19,0
-  27 0014 9040      		sbci r25,0
-  28 0016 01F4      		brne 1b
-  29 0018 00C0      		rjmp .
-  30 001a 0000      		nop
-  31 001c 00C0      		rjmp .L2
-  33               		.ident	"GCC: (GNU) 7.3.0"
+   8               	.global	__vector_2
+  10               	__vector_2:
+  11 0000 8F93 8FB7 		__gcc_isr 1
+  11      8F93 
+  12 0006 9F93      		push r25
+  13               	/* prologue: Signal */
+  14               	/* frame size = 0 */
+  15               	/* stack size = 1...5 */
+  16               	.L__stack_usage = 1 + __gcc_isr.n_pushed
+  17 0008 88B3      		in r24,0x18
+  18 000a 91E0      		ldi r25,lo8(1)
+  19 000c 8927      		eor r24,r25
+  20 000e 88BB      		out 0x18,r24
+  21               	/* epilogue start */
+  22 0010 9F91      		pop r25
+  23 0012 8F91 8FBF 		__gcc_isr 2
+  23      8F91 
+  24 0018 1895      		reti
+  25               		__gcc_isr 0,r24
+  27               		.section	.text.startup,"ax",@progbits
+  28               	.global	main
+  30               	main:
+  31               	/* prologue: function */
+  32               	/* frame size = 0 */
+  33               	/* stack size = 0 */
+  34               	.L__stack_usage = 0
+  35 0000 8FEF      		ldi r24,lo8(-1)
+  36 0002 87BB      		out 0x17,r24
+  37 0004 C49A      		sbi 0x18,4
+  38 0006 8BB7      		in r24,0x3b
+  39 0008 8062      		ori r24,lo8(32)
+  40 000a 8BBF      		out 0x3b,r24
+  41 000c AC9A      		sbi 0x15,4
+  42               	/* #APP */
+  43               	 ;  10 "src/main.c" 1
+  44 000e 7894      		sei
+  45               	 ;  0 "" 2
+  46               	/* #NOAPP */
+  47               	.L3:
+  48 0010 00C0      		rjmp .L3
+  50               		.ident	"GCC: (GNU) 8.2.0"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 main.c
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:2      *ABS*:000000000000003e __SP_H__
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:3      *ABS*:000000000000003d __SP_L__
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:4      *ABS*:000000000000003f __SREG__
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:5      *ABS*:0000000000000000 __tmp_reg__
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:6      *ABS*:0000000000000001 __zero_reg__
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccjN6xeh.s:11     .text.startup:0000000000000000 main
+     /tmp/cckV9mNE.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cckV9mNE.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cckV9mNE.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cckV9mNE.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cckV9mNE.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cckV9mNE.s:10     .text:0000000000000000 __vector_2
+                            *ABS*:0000000000000002 __gcc_isr.n_pushed.001
+     /tmp/cckV9mNE.s:30     .text.startup:0000000000000000 main
 
 NO UNDEFINED SYMBOLS

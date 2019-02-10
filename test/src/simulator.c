@@ -10,10 +10,12 @@
 #include <libwebsockets.h>
 
 #include "led.h"
+#include "button.h"
 #include "simulator.h"
 #include "websocket.h"
 
 led_t led;
+button_t button;
 
 struct simulator* simulator_init() {
     struct simulator * simulator;
@@ -57,9 +59,17 @@ struct simulator* simulator_init() {
     pthread_mutex_init(&simulator->lock_terminate, NULL);
     simulator->terminate = 0;
 
+    /* create the LED */
     led_init(simulator, &led, "led");
 
+    /* attach the LED to the port */
     avr_connect_irq(avr_io_getirq(simulator->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 0), led.irq);
+
+    /* create the BUTTON */
+    button_init(simulator, &button, "button");
+   
+    /* attach the BUTTON to the port */
+    avr_connect_irq(button.irq, avr_io_getirq(simulator->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 4));
 
     return simulator;
 }
@@ -91,6 +101,6 @@ void simulator_run(struct simulator* simulator) {
 
 void simulator_terminate(struct simulator* simulator) {
     pthread_mutex_lock(&simulator->lock_terminate);
-    simulator->terminate;
+    simulator->terminate = 1;
     pthread_mutex_unlock(&simulator->lock_terminate);
 }

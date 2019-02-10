@@ -7,7 +7,6 @@ Discarded input sections
 
  .data          0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
  .bss           0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
- .text          0x0000000000000000        0x0 target/main.o
  .data          0x0000000000000000        0x0 target/main.o
  .bss           0x0000000000000000        0x0 target/main.o
  .text          0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
@@ -150,7 +149,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x0000000000000000       0x52
+.text           0x0000000000000000       0x60
  *(.vectors)
  .vectors       0x0000000000000000       0x1e /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
                 0x0000000000000000                __vectors
@@ -214,19 +213,20 @@ END GROUP
                 0x000000000000002e                __vector_5
                 0x000000000000002e                __vector_4
                 0x000000000000002e                __vector_9
-                0x000000000000002e                __vector_2
                 0x000000000000002e                __vector_8
                 0x000000000000002e                __vector_14
                 0x000000000000002e                __vector_10
-                0x0000000000000030                . = ALIGN (0x2)
+ .text          0x0000000000000030       0x1a target/main.o
+                0x0000000000000030                __vector_2
+                0x000000000000004a                . = ALIGN (0x2)
  *(.text.*)
- .text.startup  0x0000000000000030       0x1e target/main.o
-                0x0000000000000030                main
-                0x000000000000004e                . = ALIGN (0x2)
+ .text.startup  0x000000000000004a       0x12 target/main.o
+                0x000000000000004a                main
+                0x000000000000005c                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x000000000000004e        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
-                0x000000000000004e                exit
-                0x000000000000004e                _exit
+ .fini9         0x000000000000005c        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+                0x000000000000005c                exit
+                0x000000000000005c                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -245,17 +245,17 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x000000000000004e        0x4 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+ .fini0         0x000000000000005c        0x4 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
  *(.fini0)
  *(.hightext)
  *(.hightext*)
  *(.progmemx.*)
-                0x0000000000000052                . = ALIGN (0x2)
+                0x0000000000000060                . = ALIGN (0x2)
  *(.jumptables)
  *(.jumptables*)
-                0x0000000000000052                _etext = .
+                0x0000000000000060                _etext = .
 
-.data           0x0000000000800060        0x0 load address 0x0000000000000052
+.data           0x0000000000800060        0x0 load address 0x0000000000000060
                 [!provide]                        PROVIDE (__data_start = .)
  *(.data)
  *(.data*)
@@ -273,8 +273,8 @@ END GROUP
  *(.bss*)
  *(COMMON)
                 [!provide]                        PROVIDE (__bss_end = .)
-                0x0000000000000052                __data_load_start = LOADADDR (.data)
-                0x0000000000000052                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x0000000000000060                __data_load_start = LOADADDR (.data)
+                0x0000000000000060                __data_load_end = (__data_load_start + SIZEOF (.data))
 
 .noinit         0x0000000000800060        0x0
                 [!provide]                        PROVIDE (__noinit_start = .)
@@ -420,7 +420,8 @@ __vector_11                                       /opt/avr/lib/gcc/avr/8.2.0/../
 __vector_12                                       /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
 __vector_13                                       /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
 __vector_14                                       /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_2                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
+__vector_2                                        target/main.o
+                                                  /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
 __vector_3                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
 __vector_4                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
 __vector_5                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o

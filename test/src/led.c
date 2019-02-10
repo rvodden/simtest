@@ -1,12 +1,8 @@
 #include <stdio.h>
-
 #include <sim_avr.h>
 
 #include "led.h"
 #include "websocket.h"
-
-int msq_num = 0;
-struct lws* lwsi;
 
 void led_init(
         struct simulator *simulator,
@@ -18,6 +14,7 @@ void led_init(
     led->simulator = simulator;
     led->name = name;
     avr_irq_register_notify(led->irq, &led_switch, simulator);
+    simulator_add_component(name);
 }
 
 void led_destroy(led_t* led)
@@ -52,7 +49,6 @@ void led_switch( struct avr_irq_t * irq, uint32_t value, void * param ) {
     lwsl_debug("Cancelling service on context: %p\n", (void *)simulator->context);
     lws_cancel_service(simulator->context);
     pthread_mutex_unlock(&simulator->lock_ring);
-
 }
 
 

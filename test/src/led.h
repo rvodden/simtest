@@ -13,7 +13,7 @@ typedef struct led_t {
     avr_irq_t * irq;	// output irq
     struct simulator *simulator;
     uint8_t value;
-    char* name;
+    const char* name;
 } led_t;
 
 

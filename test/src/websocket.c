@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <json/json.h>
 
 #include "websocket.h"
 #include "simulator.h"
@@ -22,6 +23,7 @@ struct websocket_context_data {
 
     int message_allocated;
     char rx_enabled;
+    struct json_tokener *json_tokener;
 };
 
 /* PRIVATE PROTOTYPES */
@@ -56,6 +58,7 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
             }
 
             context_data->context = context;
+            context_data->json_tokener = json_tokener_new();
             
             break;
             
@@ -151,7 +154,9 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
             break;
 
         case LWS_CALLBACK_RECEIVE:
-            lwsl_notice("Received: %s\n", (char *)in);
+            lwsl_notice("Received: %.*s\n", (int) len, (char *)in);
+            /* attempt to parse recieved object, check result and throw back appropriate response */
+
             break;
 
         default:
