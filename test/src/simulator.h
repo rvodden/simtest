@@ -7,9 +7,11 @@
 
 struct simulator {
     avr_t*              avr;
-    struct lws_ring*    ring;
+    struct lws_ring*    output_ring;
+    pthread_mutex_t     lock_output_ring;
+    struct lws_ring*    input_ring;
+    pthread_mutex_t     lock_input_ring;
     struct lws_context* context;
-    pthread_mutex_t     lock_ring;
     uint8_t             terminate;
     pthread_mutex_t     lock_terminate;
     struct component*   components_head;

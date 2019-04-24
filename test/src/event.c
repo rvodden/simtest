@@ -1,73 +1,55 @@
 #include "event.h"
 
-static const char * const paths[] = {
-	"dummy___"
+static signed char  event_parser_callback   (struct lejp_ctx *ctx, char reason);
+
+static const char * const paths_message[] = {
+	"name",
+    "message",
+    "message.value"
 };
 
-struct lejp_ctx* event_parser_init(char* buffer, int buffer_size) {
-    int fd, n, retval = 1, m;
-	struct lejp_ctx ctx;
+enum message_paths {
+    MESSAGE_NAME,
+    MESSAGE,
+    MESSAGE_VALUE
+}; 
 
-	lws_set_log_level(7, NULL);
+void destroy_event_message(struct event_message* event_message) {
 
-	lwsl_notice("libwebsockets-test-lejp  (C) 2017 - 2018 andy@warmcat.com\n");
-	lwsl_notice("  usage: cat my.json | libwebsockets-test-lejp\n\n");
+}
 
-	lejp_construct(&ctx, event_parser_callback, NULL, paths, LWS_ARRAY_SIZE(paths));
+int event_parse(struct event_message* message, char* buffer, int buffer_size) {
+    int retval = 1, m;
+    struct lejp_ctx ctx;
 
-	fd = 0;
+	lwsl_notice("Starting the JSON Parser\n");
+	lejp_construct(&ctx, event_parser_callback, message, paths_message, LWS_ARRAY_SIZE(paths_message));
 
-	while (n > 0) {
-		n = read(fd, buffer, buffer_size);
+	m = lejp_parse(&ctx, (uint8_t *)buffer, buffer_size);
 
-		if (n <= 0)
-			continue;
-
-		m = lejp_parse(&ctx, (uint8_t *)buffer, n);
-
-		if (m < 0 && m != LEJP_CONTINUE) {
-			lwsl_err("parse failed %d\n", m);
-			goto bail;
-		}
+	if (m < 0 && m != LEJP_CONTINUE) {
+		lwsl_err("parse failed %d\n", m);
+		goto bail;
 	}
-	lwsl_notice("okay\n");
+	
+    lwsl_notice("okay\n");
 	retval = 0;
-bail:
-	lejp_destruct(&ctx);
 
+bail:
 	return retval;
 }
 
-
 static signed char event_parser_callback(struct lejp_ctx *ctx, char reason) {
-    char buffer[1024], *p = buffer, *end = &buffer[sizeof(buffer)];
+    struct event_message* message = (struct event_message*) ctx->user;
 
-	if (reason & LEJP_FLAG_CB_IS_VALUE) {
-		p += lws_snprintf(p, p - end, "   value '%s' ", ctx->buf);
-		if (ctx->ipos) {
-			int n;
-
-			p += lws_snprintf(p, p - end, "(array indexes: ");
-			for (n = 0; n < ctx->ipos; n++)
-				p += lws_snprintf(p, p - end, "%d ", ctx->i[n]);
-			p += lws_snprintf(p, p - end, ") ");
-		}
-		lwsl_notice("%s (%s)\r\n", buffer,
-		       reason_names[(unsigned int)
-			(reason) & (LEJP_FLAG_CB_IS_VALUE - 1)]);
-
-		(void)reason_names; /* NO_LOGS... */
-		return 0;
+	if (reason & LEJP_FLAG_CB_IS_VALUE) { /* is this a value we've seen */
+        switch(ctx->path_match -1) {
+            case MESSAGE_NAME:
+                lws_strncpy(message->destination, ctx->buf, EVENT_DESTINATION_MAX_LENGTH - 1);
+            case MESSAGE_VALUE:
+                message->event.value = atoi(ctx->buf);
+        }
 	}
 
-	switch (reason) {
-	case LEJPCB_COMPLETE:
-		lwsl_notice("Parsing Completed (LEJPCB_COMPLETE)\n");
-		break;
-	case LEJPCB_PAIR_NAME:
-		lwsl_notice("path: '%s' (LEJPCB_PAIR_NAME)\n", ctx->path);
-		break;
-	}
-
-	return 0;
+    return 0;
 }

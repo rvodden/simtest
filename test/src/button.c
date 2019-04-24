@@ -6,6 +6,14 @@
 
 struct lws* lwsi;
 
+const char** paths_button = {
+   "value" 
+};
+
+enum button_paths {
+    VALUE
+};
+
 void button_init(
         struct simulator *simulator,
         button_t * button,

@@ -3,6 +3,7 @@
 #include <pthread.h>
 
 #include "websocket.h"
+#include "event.h"
 #include "simulator.h"
 
 #define WEBSOCKET_QUEUE_LENGTH 32
@@ -15,14 +16,15 @@
 /* Data for an instance of the websocket protocol */
 struct websocket_context_data {
     struct lws_context *context;
-    struct lws_ring *ring;
-    pthread_mutex_t* lock_ring;
+    struct lws_ring *output_ring;
+    pthread_mutex_t* lock_output_ring;
+    struct lws_ring *input_ring;
+    pthread_mutex_t* lock_input_ring;
 
     struct websocket_per_session_data *psd_list;
 
     int message_allocated;
     char rx_enabled;
-    struct json_tokener *json_tokener;
 };
 
 /* PRIVATE PROTOTYPES */
@@ -35,8 +37,16 @@ static struct websocket_per_session_data* delete_session(
 
 void websocket_destroy_message(void *_msg)
 {
-	struct websocket_message *msg = _msg;
 }
+
+
+void websocket_destroy_input_message(void *_msg)
+{
+    struct websocket_input_message *message = (struct websocket_input_message*) _msg;
+    lejp_destruct(message->ctx);
+    free(message->ctx);
+}
+
 
 int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
@@ -57,7 +67,6 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
             }
 
             context_data->context = context;
-            context_data->json_tokener = json_tokener_new();
 
             break;
 
@@ -69,7 +78,7 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
 
             /* tell this session about our protocol instance, lws instance, and point at the tail of the buffer */
             session_data->lwsi = lwsi;
-            session_data->tail = lws_ring_get_oldest_tail(context_data->ring);
+            session_data->tail = lws_ring_get_oldest_tail(context_data->output_ring);
 
             /* stick this session at the front of the list */
             session_data->next = context_data->psd_list;
@@ -85,15 +94,15 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
             /* we'll get a callback with this code whenever there
              * is something to send */
             lwsl_notice("Sending a message\n");
-            pthread_mutex_lock(context_data->lock_ring);
+            pthread_mutex_lock(context_data->lock_output_ring);
 
 			/* grab the message which is at the tail position for this session */
-			struct websocket_message* message = ( struct websocket_message* ) lws_ring_get_element( context_data->ring, &(session_data->tail) );
+			struct websocket_message* message = ( struct websocket_message* ) lws_ring_get_element( context_data->output_ring, &(session_data->tail) );
 
 			/* break out if its null */
 			if(!message) {
                 lwsl_debug("No message to send\n");
-                pthread_mutex_unlock(context_data->lock_ring);
+                pthread_mutex_unlock(context_data->lock_output_ring);
                 break;
             }
 
@@ -107,12 +116,12 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
 
 			if ( number_of_sent_characters < (int) message->length ) { /* fatal error - connection needs closing */
 				lwsl_err("%s: Failed to write to websocket: %d\n", __func__, number_of_sent_characters);
-                pthread_mutex_unlock(context_data->lock_ring);
+                pthread_mutex_unlock(context_data->lock_output_ring);
 				return -1;
 			}
 
 			lws_ring_consume_and_update_oldest_tail(
-				context_data->ring,
+				context_data->output_ring,
 				struct websocket_per_session_data,
 				&session_data->tail,
 				1,
@@ -121,11 +130,11 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
 				next
 			);
 
-            if(lws_ring_get_element( context_data->ring, &(session_data->tail))) {
+            if(lws_ring_get_element( context_data->output_ring, &(session_data->tail))) {
                 /* more to send */
                 lws_callback_on_writable(session_data->lwsi);
             }
-            pthread_mutex_unlock(context_data->lock_ring);
+            pthread_mutex_unlock(context_data->lock_output_ring);
             break;
 
         case LWS_CALLBACK_EVENT_WAIT_CANCELLED:
@@ -136,14 +145,14 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
             if(!session) {
                 /* if there aren't any sessions, kill this message */
                 lwsl_debug("No sessions!\n");
-                pthread_mutex_lock(context_data->lock_ring);
+                pthread_mutex_lock(context_data->lock_output_ring);
 			    lws_ring_consume(
-				    context_data->ring,
+				    context_data->output_ring,
                     NULL,
     				NULL,
                     1
     			);
-                pthread_mutex_unlock(context_data->lock_ring);
+                pthread_mutex_unlock(context_data->lock_output_ring);
             } else {
                 while (session) {
                     lws_callback_on_writable(session->lwsi);
@@ -155,7 +164,19 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
         case LWS_CALLBACK_RECEIVE:
             lwsl_notice("Received: %.*s\n", (int) len, (char *)in);
             /* attempt to parse recieved object, check result and throw back appropriate response */
+            struct event_message input_message;
 
+            event_parse(&input_message, (char*) in, (int) len);
+            
+            pthread_mutex_lock(context_data->lock_input_ring);
+            if(!lws_ring_get_count_free_elements(context_data->input_ring)) {
+                lwsl_user("Dropping as no space in the input_ring buffer.\n");
+                pthread_mutex_unlock(context_data->lock_input_ring);
+                break;
+            }
+
+            lws_ring_insert(context_data->input_ring, &input_message, 1);
+            pthread_mutex_unlock(context_data->lock_input_ring);
             break;
 
         default:
@@ -169,8 +190,10 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
 struct websocket_context_data* create_websocket_context_data(struct simulator* simulator) {
     struct websocket_context_data* websocket_context_data = malloc(sizeof(struct websocket_context_data));
     memset(websocket_context_data, 0, sizeof(struct websocket_context_data));
-    websocket_context_data->ring = simulator->ring;
-    websocket_context_data->lock_ring = &simulator->lock_ring;
+    websocket_context_data->output_ring = simulator->output_ring;
+    websocket_context_data->lock_output_ring = &simulator->lock_output_ring;
+    websocket_context_data->input_ring = simulator->input_ring;
+    websocket_context_data->lock_input_ring = &simulator->lock_input_ring;
 
     return websocket_context_data;
 }
