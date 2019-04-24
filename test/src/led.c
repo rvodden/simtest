@@ -14,7 +14,7 @@ void led_init(
     led->simulator = simulator;
     led->name = name;
     avr_irq_register_notify(led->irq, &led_switch, simulator);
-    simulator_add_component(name);
+    simulator_add_component(simulator, led);
 }
 
 void led_destroy(led_t* led)
@@ -25,7 +25,7 @@ void led_destroy(led_t* led)
 
 void led_switch( struct avr_irq_t * irq, uint32_t value, void * param ) {
     struct simulator *simulator = (struct simulator*) param;
-   
+
     struct websocket_message*  message = malloc(sizeof(struct websocket_message));
     memset(message, 0, sizeof(struct websocket_message));
 
@@ -39,16 +39,14 @@ void led_switch( struct avr_irq_t * irq, uint32_t value, void * param ) {
         default:
             break;
     }
-    
+
     pthread_mutex_lock(&simulator->lock_ring);
     if(!lws_ring_get_count_free_elements(simulator->ring)) {
         lwsl_user("Dropping as no space in the ring buffer.\n");
     }
-   
+
     lws_ring_insert(simulator->ring, message,1);
     lwsl_debug("Cancelling service on context: %p\n", (void *)simulator->context);
     lws_cancel_service(simulator->context);
     pthread_mutex_unlock(&simulator->lock_ring);
 }
-
-

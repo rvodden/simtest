@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-#include <json/json.h>
 
 #include "websocket.h"
 #include "simulator.h"
@@ -28,8 +27,8 @@ struct websocket_context_data {
 
 /* PRIVATE PROTOTYPES */
 static struct websocket_per_session_data* delete_session(
-        struct websocket_per_session_data*, 
-        struct websocket_per_session_data* 
+        struct websocket_per_session_data*,
+        struct websocket_per_session_data*
 );
 
 /* PUBLIC IMPLEMENTATION*/
@@ -50,7 +49,7 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
 
         case LWS_CALLBACK_PROTOCOL_INIT:
             lwsl_info("Websocket Protocol Iniialized\n");
-            
+
             /* Create per vhost data */
             if(!context_data) {
                 lwsl_err("Cannot allocate context data");
@@ -59,15 +58,15 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
 
             context_data->context = context;
             context_data->json_tokener = json_tokener_new();
-            
+
             break;
-            
+
         case LWS_CALLBACK_PROTOCOL_DESTROY:
             break;
 
         case LWS_CALLBACK_ESTABLISHED:
             lwsl_info("New websocket protocol connection received\n");
-            
+
             /* tell this session about our protocol instance, lws instance, and point at the tail of the buffer */
             session_data->lwsi = lwsi;
             session_data->tail = lws_ring_get_oldest_tail(context_data->ring);
@@ -121,7 +120,7 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
 				tail,
 				next
 			);
-            
+
             if(lws_ring_get_element( context_data->ring, &(session_data->tail))) {
                 /* more to send */
                 lws_callback_on_writable(session_data->lwsi);
@@ -184,7 +183,7 @@ void destroy_websocket_context_data(struct websocket_context_data* context_data)
 
 /* recursive function to delete a session from the session linked list */
 static struct websocket_per_session_data* delete_session(
-        struct websocket_per_session_data* head, 
+        struct websocket_per_session_data* head,
         struct websocket_per_session_data* x) {
     struct websocket_per_session_data* next;
     if ( head == NULL) { // Found the tail

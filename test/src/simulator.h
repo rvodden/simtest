@@ -12,13 +12,14 @@ struct simulator {
     pthread_mutex_t     lock_ring;
     uint8_t             terminate;
     pthread_mutex_t     lock_terminate;
-    struct component*   head;
+    struct component*   components_head;
 };
 
 struct component {
-    struct components* next;
+    int id;
+    struct component* next;
     char* name;
-    void (*process_message) (char*); 
+    void (*process_message) (char*);
 };
 
 struct simulator* simulator_init(void);

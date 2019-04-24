@@ -1,9 +1,7 @@
 #include <stdlib.h>
 
 #include <libwebsockets.h>
-
 #include <sim_avr.h>
-
 #include "simulator.h"
 
 #ifndef __LED_H__

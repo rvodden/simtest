@@ -25,9 +25,9 @@ struct simulator* simulator_init() {
     elf_firmware_t firmware;
     const char* firmware_filename = "main.elf";
 
-    if( elf_read_firmware(firmware_filename, &firmware) ) 
+    if( elf_read_firmware(firmware_filename, &firmware) )
     {
-        fprintf(stderr, "Unable to open firmware: %s\n", firmware_filename );        
+        fprintf(stderr, "Unable to open firmware: %s\n", firmware_filename );
         exit(-1);
     }
 
@@ -50,6 +50,8 @@ struct simulator* simulator_init() {
         exit(-2);
     }
 
+    simulator->components_head = NULL;
+
     avr_init(simulator->avr);
     avr_load_firmware(simulator->avr, &firmware);
 
@@ -67,11 +69,25 @@ struct simulator* simulator_init() {
 
     /* create the BUTTON */
     button_init(simulator, &button, "button");
-   
+
     /* attach the BUTTON to the port */
     avr_connect_irq(button.irq, avr_io_getirq(simulator->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 4));
 
     return simulator;
+}
+
+void simulator_add_component(struct simulator* simulator, struct component* component) {
+    struct component* tail = simulator->components_head;
+    component->next = NULL;
+
+    if (!tail) {
+        simulator->components_head = component;
+    } else {
+        while(tail->next) {
+            tail = tail->next;
+        }
+        tail->next = component;
+    }
 }
 
 void simulator_destroy(struct simulator* simulator) {
@@ -80,7 +96,7 @@ void simulator_destroy(struct simulator* simulator) {
     pthread_mutex_destroy(&simulator->lock_ring);
     led_destroy(&led);
     avr_terminate(simulator->avr);
-    free(simulator); 
+    free(simulator);
 }
 
 void simulator_run(struct simulator* simulator) {
