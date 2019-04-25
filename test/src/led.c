@@ -29,16 +29,12 @@ void led_switch( struct avr_irq_t * irq, uint32_t value, void * param ) {
     struct websocket_message*  message = malloc(sizeof(struct websocket_message));
     memset(message, 0, sizeof(struct websocket_message));
 
-    switch(value) {
-        case 1:
-            message->length = lws_snprintf(message->payload, WEBSOCKET_MAX_MESSAGE_LENGTH, "%s", "Led On\n");
-            break;
-        case 0:
-            message->length = lws_snprintf(message->payload, WEBSOCKET_MAX_MESSAGE_LENGTH, "%s", "Led Off\n");
-            break;
-        default:
-            break;
-    }
+    char* text;
+    if (value == 0)
+        text = "false";
+    else
+        text = "true";
+    message->length = lws_snprintf(message->payload, WEBSOCKET_MAX_MESSAGE_LENGTH, "{\"name\": \"led\", \"message\": {\"value\": %s }}\n", text);
 
     pthread_mutex_lock(&simulator->lock_output_ring);
     if(!lws_ring_get_count_free_elements(simulator->output_ring)) {

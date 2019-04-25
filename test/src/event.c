@@ -14,7 +14,7 @@ enum message_paths {
     MESSAGE_VALUE
 }; 
 
-void destroy_event_message(struct event_message* event_message) {
+void destroy_event_message(void* event_message) {
 
 }
 
@@ -45,8 +45,10 @@ static signed char event_parser_callback(struct lejp_ctx *ctx, char reason) {
 	if (reason & LEJP_FLAG_CB_IS_VALUE) { /* is this a value we've seen */
         switch(ctx->path_match -1) {
             case MESSAGE_NAME:
+                lwsl_debug("Received the destination of the mssage.\n");
                 lws_strncpy(message->destination, ctx->buf, EVENT_DESTINATION_MAX_LENGTH - 1);
             case MESSAGE_VALUE:
+                lwsl_debug("Received the value of the mssage.\n");
                 message->event.value = atoi(ctx->buf);
         }
 	}

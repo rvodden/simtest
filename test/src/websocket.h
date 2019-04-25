@@ -8,7 +8,7 @@
 #include "simulator.h"
 
 #define WEBSOCKET_MAX_INSTANCES 3
-#define WEBSOCKET_MAX_MESSAGE_LENGTH 32
+#define WEBSOCKET_MAX_MESSAGE_LENGTH 64
 
 #define WEBSOCKET_PROTOCOL \
 	{ \

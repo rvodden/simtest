@@ -10,7 +10,9 @@ class Led extends React.Component {
     }
 
     handleData(data) {
-        this.setState({ value: ! this.state.value });
+        console.log(`Received data: ${data.data}`);
+        var event = JSON.parse(data.data);
+        this.setState({ value: event.message.value });
     }
 
     render() {
@@ -39,21 +41,25 @@ class Button extends React.Component {
 
 class Board extends React.Component {
     constructor(props) {
-        super(props);
+        super(props)
+        this.setLed = element => {
+            this.led = element;
+        }
     }
 
     componentDidMount() {
         this.connection = new WebSocket('ws://localhost:7681','websocket-protocol');
-        this.connection.onMessage = data => {
+        this.connection.onmessage = data => {
+            console.log(`Received message: ${JSON.stringify(data)}`)
             this.led.handleData(data)
-        }
+        };
     }
 
     sendMessage(message, name) {
         var jsonMessage = { name: name, message: {value: message}  };
+        console.log(`Sending message: ${JSON.stringify(jsonMessage)}`);
         this.connection.send(JSON.stringify(jsonMessage));
     }
-
 
     render() {
         return (
@@ -61,12 +67,12 @@ class Board extends React.Component {
                 <svg version="1.1" width={100} height={100}>
                     <Led
                         value={true}
-                        ref={this.led}
-                        name="LED"
+                        ref={this.setLed}
+                        name="led"
                     />
                     <Button
                         sendMessage={(message) => this.sendMessage(message, "button")}
-                        name="BUTTON"
+                        name="button"
                     />
                 </svg>
             </div>

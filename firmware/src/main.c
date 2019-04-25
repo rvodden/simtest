@@ -23,6 +23,13 @@ int main ( void  ) {
 
     while(1);
 
+
+/*     while (1) {
+ *         PORTB ^= (1 << PB0);
+ *         _delay_ms(200);
+ *     }
+ * 
+ */
     return 0;
 }
 

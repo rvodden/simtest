@@ -43,7 +43,7 @@ struct event_message {
 };
 
 int event_parse(struct event_message*, char* buffer, int buffer_size);
-void destroy_event_message( struct event_message* );
+void destroy_event_message( void* );
 
 
 #endif /* __event_h__ */

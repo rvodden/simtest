@@ -53,7 +53,8 @@ static int http_callback(struct lws *wsi, enum lws_callback_reasons reason,
     unsigned char *buffer[LWS_PRE + 2048];
     unsigned char *start = buffer[LWS_PRE];
     unsigned char *p = start;
-    unsigned char *end = buffer[sizeof(buffer) - LWS_PRE - 1];
+    lwsl_debug("Size of buffer: %d\n", sizeof(&buffer));
+    unsigned char *end = buffer[sizeof(&buffer) - LWS_PRE - 1];
 
 #ifdef __APPLE__
     uint64_t tid;

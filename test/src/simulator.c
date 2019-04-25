@@ -68,6 +68,10 @@ struct simulator* simulator_init() {
     avr_init(simulator->avr);
     avr_load_firmware(simulator->avr, &firmware);
 
+    simulator->avr->gdb_port = 1234;
+    simulator->avr->state = cpu_Stopped;
+    avr_gdb_init(simulator->avr);
+
     pthread_mutex_init(&simulator->lock_output_ring, NULL);
     simulator->output_ring = lws_ring_create( sizeof(struct websocket_message), 32, websocket_destroy_message);
 
@@ -129,25 +133,33 @@ void simulator_run(struct simulator* simulator) {
         if (terminated || state == cpu_Done || state == cpu_Crashed)
             break;
 
-/*         pthread_mutex_lock( &simulator->lock_input_ring );
- * 		struct event_message* message = ( struct event_message* ) lws_ring_get_element( simulator->input_ring, NULL);
- *        
- *         if(message != NULL) {
- *             lwsl_notice("Got message for: %s, with value %d\n", message->destination, message->event.value);
- *             if(strcmp(message->destination,"button") == 0 ) {
- *                     if(message->event.value == 0) {
- *                         button_press(&button);
- *                     } else {
- *                         button_release(&button);
- *                     }
- *             }
- *             lws_ring_consume(simulator->input_ring,NULL,NULL,1);
- *         }
- * 
- *         pthread_mutex_unlock(&simulator->lock_input_ring);
- */
-    }
+        pthread_mutex_lock( &simulator->lock_input_ring );
+		struct event_message* message = ( struct event_message* ) lws_ring_get_element( simulator->input_ring, NULL);
+        if(message != NULL) {
+            lwsl_notice("Got message for: %s, with value %d\n", message->destination, message->event.value);
+            if(strcmp(message->destination,"button") == 0 ) {
+                    if(message->event.value == 0) {
+                        lwsl_debug("Pressing button\n");
+                        button_press(&button);
+                    } else {
+                        lwsl_debug("Releasing button\n");
+                        button_release(&button);
+                    }
+            }
+            lws_ring_consume(simulator->input_ring,NULL,NULL,1);
+        }
 
+        pthread_mutex_unlock(&simulator->lock_input_ring);
+
+    }
+    switch(state) {
+        case cpu_Done:
+            lwsl_err("Simulator Thread Exited as CPU is done.\n");
+            break;
+        case cpu_Crashed:
+            lwsl_err("Simulator Thread Exited as CPU crashed.\n");
+            break;
+    }
     pthread_exit(NULL);
 }
 

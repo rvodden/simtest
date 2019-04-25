@@ -48,13 +48,13 @@
   50               		.ident	"GCC: (GNU) 8.2.0"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 main.c
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccC97Iuw.s:2      *ABS*:000000000000003e __SP_H__
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccC97Iuw.s:3      *ABS*:000000000000003d __SP_L__
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccC97Iuw.s:4      *ABS*:000000000000003f __SREG__
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccC97Iuw.s:5      *ABS*:0000000000000000 __tmp_reg__
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccC97Iuw.s:6      *ABS*:0000000000000001 __zero_reg__
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccC97Iuw.s:10     .text:0000000000000000 __vector_2
+     /tmp/ccZ9obR3.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccZ9obR3.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccZ9obR3.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccZ9obR3.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccZ9obR3.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccZ9obR3.s:10     .text:0000000000000000 __vector_2
                             *ABS*:0000000000000002 __gcc_isr.n_pushed.001
-/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccC97Iuw.s:30     .text.startup:0000000000000000 main
+     /tmp/ccZ9obR3.s:30     .text.startup:0000000000000000 main
 
 NO UNDEFINED SYMBOLS

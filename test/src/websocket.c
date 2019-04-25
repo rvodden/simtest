@@ -170,7 +170,7 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
             
             pthread_mutex_lock(context_data->lock_input_ring);
             if(!lws_ring_get_count_free_elements(context_data->input_ring)) {
-                lwsl_user("Dropping as no space in the input_ring buffer.\n");
+                lwsl_err("Dropping as no space in the input_ring buffer.\n");
                 pthread_mutex_unlock(context_data->lock_input_ring);
                 break;
             }

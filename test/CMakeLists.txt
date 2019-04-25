@@ -1,3 +1,7 @@
+if(UNIX AND NOT APPLE)
+    set(LINUX TRUE)
+endif()
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -21,3 +25,9 @@ target_include_directories(simtest PUBLIC ${OPENSSL_INCLUDE_DIR})
 
 target_link_libraries(simtest ${SIMAVR_LIBRARIES} ${OPENSSL_LIBRARIES} ${LIBWEBSOCKETS_LIBRARIES})
 target_link_libraries(simtest ${LIBELF_LIBRARIES} )
+
+configure_file(../firmware/target/main.elf main.elf)
+
+if(LINUX)
+    target_link_libraries(simtest pthread)
+endif()
