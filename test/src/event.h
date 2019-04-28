@@ -34,7 +34,7 @@ static const char * const reason_names[] = {
 
 
 struct event {
-    int value
+    int value;
 };
 
 struct event_message {

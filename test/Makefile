@@ -124,7 +124,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 # one thing changes - we can do better than that.
 $(OBJDIR)/%.ro : $(RESDIR)/%
 	@echo -n Creating $@ from resource files...
-	@$(LD) -r -b binary $< -o $@
+	@$(LD) -r $< -o $@
 	@echo done.
 
 # Target: clean project.

@@ -13,14 +13,14 @@ void http_destroy( struct lws_context* );
 
 /* TODO: Find a way to dynamically generate this part */
 
-extern const char _binary_resources_index_html_start[];
-extern const char _binary_resources_index_html_end[];
-extern const int  _binary_resources_index_html_size[];
-
-extern const char _binary_resources_style_css_start[];
-extern const char _binary_resources_style_css_end[];
-extern const int _binary_resources_style_css_size[];
-
-extern const char _binary_resources_app_js_start[];
-extern const char _binary_resources_app_js_end[];
-extern const int _binary_resources_app_js_size[];
+//extern const char _binary_resources_index_html_start[];
+//extern const char _binary_resources_index_html_end[];
+//extern const int  _binary_resources_index_html_size[];
+//
+//extern const char _binary_resources_style_css_start[];
+//extern const char _binary_resources_style_css_end[];
+//extern const int _binary_resources_style_css_size[];
+//
+//extern const char _binary_resources_app_js_start[];
+//extern const char _binary_resources_app_js_end[];
+//extern const int _binary_resources_app_js_size[];

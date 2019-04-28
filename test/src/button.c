@@ -6,7 +6,7 @@
 
 struct lws* lwsi;
 
-const char** paths_button = {
+const char* paths_button[] = {
    "value" 
 };
 

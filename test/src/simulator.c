@@ -129,16 +129,23 @@ void simulator_run(struct simulator* simulator) {
         if (terminated || state == cpu_Done || state == cpu_Crashed)
             break;
 
-        pthread_mutex_lock( &simulator->lock_input_ring );
-		struct event_message* message = ( struct event_message* ) lws_ring_get_element( simulator->input_ring, NULL);
-       
-        if(message) {
-            lwsl_notice("Got message for: %s, with value %d\n", message->destination, message->event.value);
-            lws_ring_consume(simulator->input_ring,NULL,NULL,1);
-        }
-
-
-        pthread_mutex_unlock(&simulator->lock_input_ring);
+/*         pthread_mutex_lock( &simulator->lock_input_ring );
+ * 		struct event_message* message = ( struct event_message* ) lws_ring_get_element( simulator->input_ring, NULL);
+ *        
+ *         if(message != NULL) {
+ *             lwsl_notice("Got message for: %s, with value %d\n", message->destination, message->event.value);
+ *             if(strcmp(message->destination,"button") == 0 ) {
+ *                     if(message->event.value == 0) {
+ *                         button_press(&button);
+ *                     } else {
+ *                         button_release(&button);
+ *                     }
+ *             }
+ *             lws_ring_consume(simulator->input_ring,NULL,NULL,1);
+ *         }
+ * 
+ *         pthread_mutex_unlock(&simulator->lock_input_ring);
+ */
     }
 
     pthread_exit(NULL);
