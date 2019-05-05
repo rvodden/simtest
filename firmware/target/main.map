@@ -1,30 +1,30 @@
 Archive member included to satisfy reference by file (symbol)
 
-/opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
-                              /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o (exit)
+/usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+                              /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o (exit)
 
 Discarded input sections
 
- .data          0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
- .bss           0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
+ .data          0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+ .bss           0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
  .data          0x0000000000000000        0x0 target/main.o
  .bss           0x0000000000000000        0x0 target/main.o
- .text          0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
- .data          0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
- .bss           0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+ .text          0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+ .data          0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+ .bss           0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
  .text.libgcc.mul
-                0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+                0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
  .text.libgcc.div
-                0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
- .text.libgcc   0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+                0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+ .text.libgcc   0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
  .text.libgcc.prologue
-                0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+                0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
  .text.libgcc.builtins
-                0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+                0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
  .text.libgcc.fmul
-                0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+                0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
  .text.libgcc.fixed
-                0x0000000000000000        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+                0x0000000000000000        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
 
 Memory Configuration
 
@@ -40,16 +40,16 @@ user_signatures  0x0000000000850000 0x0000000000000400 rw !x
 
 Linker script and memory map
 
-LOAD /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
+LOAD /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
 Address of section .mmcu set to 0x910000
 LOAD target/main.o
 Address of section .mmcu set to 0x910000
-LOAD /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/libm.a
+LOAD /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/libm.a
 START GROUP
-LOAD /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a
-LOAD /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/libm.a
-LOAD /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/libc.a
-LOAD /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/libattiny85.a
+LOAD /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a
+LOAD /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/libm.a
+LOAD /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/libc.a
+LOAD /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/libattiny85.a
 END GROUP
                 0x0000000000002000                __TEXT_REGION_LENGTH__ = DEFINED (__TEXT_REGION_LENGTH__)?__TEXT_REGION_LENGTH__:0x2000
                 0x000000000000ffa0                __DATA_REGION_LENGTH__ = DEFINED (__DATA_REGION_LENGTH__)?__DATA_REGION_LENGTH__:0xffa0
@@ -149,9 +149,9 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x0000000000000000       0x60
+.text           0x0000000000000000       0x64
  *(.vectors)
- .vectors       0x0000000000000000       0x1e /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
+ .vectors       0x0000000000000000       0x1e /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
                 0x0000000000000000                __vectors
                 0x0000000000000000                __vector_default
  *(.vectors)
@@ -177,13 +177,13 @@ END GROUP
  SORT_BY_NAME(*)(.ctors)
  SORT_BY_NAME(*)(.dtors)
  *(.init0)
- .init0         0x000000000000001e        0x0 /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
+ .init0         0x000000000000001e        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
                 0x000000000000001e                __init
  *(.init0)
  *(.init1)
  *(.init1)
  *(.init2)
- .init2         0x000000000000001e        0xc /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
+ .init2         0x000000000000001e        0xc /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
  *(.init2)
  *(.init3)
  *(.init3)
@@ -198,11 +198,11 @@ END GROUP
  *(.init8)
  *(.init8)
  *(.init9)
- .init9         0x000000000000002a        0x4 /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
+ .init9         0x000000000000002a        0x4 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
  *(.init9)
  *(.text)
- .text          0x000000000000002e        0x2 /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-                0x000000000000002e                __vector_1
+ .text          0x000000000000002e        0x2 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+                0x000000000000002e                __vector_10
                 0x000000000000002e                __vector_12
                 0x000000000000002e                __bad_interrupt
                 0x000000000000002e                __vector_6
@@ -215,18 +215,18 @@ END GROUP
                 0x000000000000002e                __vector_9
                 0x000000000000002e                __vector_8
                 0x000000000000002e                __vector_14
-                0x000000000000002e                __vector_10
- .text          0x0000000000000030       0x1a target/main.o
+                0x000000000000002e                __vector_1
+ .text          0x0000000000000030       0x1e target/main.o
                 0x0000000000000030                __vector_2
-                0x000000000000004a                . = ALIGN (0x2)
+                0x000000000000004e                . = ALIGN (0x2)
  *(.text.*)
- .text.startup  0x000000000000004a       0x12 target/main.o
-                0x000000000000004a                main
-                0x000000000000005c                . = ALIGN (0x2)
+ .text.startup  0x000000000000004e       0x12 target/main.o
+                0x000000000000004e                main
+                0x0000000000000060                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x000000000000005c        0x0 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
-                0x000000000000005c                exit
-                0x000000000000005c                _exit
+ .fini9         0x0000000000000060        0x0 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+                0x0000000000000060                exit
+                0x0000000000000060                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -245,17 +245,17 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x000000000000005c        0x4 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+ .fini0         0x0000000000000060        0x4 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
  *(.fini0)
  *(.hightext)
  *(.hightext*)
  *(.progmemx.*)
-                0x0000000000000060                . = ALIGN (0x2)
+                0x0000000000000064                . = ALIGN (0x2)
  *(.jumptables)
  *(.jumptables*)
-                0x0000000000000060                _etext = .
+                0x0000000000000064                _etext = .
 
-.data           0x0000000000800060        0x0 load address 0x0000000000000060
+.data           0x0000000000800060        0x0 load address 0x0000000000000064
                 [!provide]                        PROVIDE (__data_start = .)
  *(.data)
  *(.data*)
@@ -273,8 +273,8 @@ END GROUP
  *(.bss*)
  *(COMMON)
                 [!provide]                        PROVIDE (__bss_end = .)
-                0x0000000000000060                __data_load_start = LOADADDR (.data)
-                0x0000000000000060                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x0000000000000064                __data_load_start = LOADADDR (.data)
+                0x0000000000000064                __data_load_end = (__data_load_start + SIZEOF (.data))
 
 .noinit         0x0000000000800060        0x0
                 [!provide]                        PROVIDE (__noinit_start = .)
@@ -325,7 +325,7 @@ END GROUP
 .note.gnu.avr.deviceinfo
                 0x0000000000000000       0x3c
  .note.gnu.avr.deviceinfo
-                0x0000000000000000       0x3c /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
+                0x0000000000000000       0x3c /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
 
 .note.gnu.build-id
  *(.note.gnu.build-id)
@@ -342,36 +342,44 @@ END GROUP
 .debug_sfnames
  *(.debug_sfnames)
 
-.debug_aranges  0x0000000000000000       0x20
+.debug_aranges  0x0000000000000000       0x48
  *(.debug_aranges)
  .debug_aranges
-                0x0000000000000000       0x20 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+                0x0000000000000000       0x28 target/main.o
+ .debug_aranges
+                0x0000000000000028       0x20 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
 
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x0000000000000000      0x446
+.debug_info     0x0000000000000000      0x4fb
  *(.debug_info .gnu.linkonce.wi.*)
- .debug_info    0x0000000000000000      0x420 /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
- .debug_info    0x0000000000000420       0x26 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+ .debug_info    0x0000000000000000      0x420 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+ .debug_info    0x0000000000000420       0xb5 target/main.o
+ .debug_info    0x00000000000004d5       0x26 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
 
-.debug_abbrev   0x0000000000000000      0x3fc
+.debug_abbrev   0x0000000000000000      0x494
  *(.debug_abbrev)
- .debug_abbrev  0x0000000000000000      0x3e8 /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
- .debug_abbrev  0x00000000000003e8       0x14 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+ .debug_abbrev  0x0000000000000000      0x3e8 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+ .debug_abbrev  0x00000000000003e8       0x98 target/main.o
+ .debug_abbrev  0x0000000000000480       0x14 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
 
-.debug_line     0x0000000000000000      0x155
+.debug_line     0x0000000000000000      0x1b8
  *(.debug_line .debug_line.* .debug_line_end)
- .debug_line    0x0000000000000000       0xf4 /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
- .debug_line    0x00000000000000f4       0x61 /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+ .debug_line    0x0000000000000000       0x1d /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+ .debug_line    0x000000000000001d      0x13a target/main.o
+ .debug_line    0x0000000000000157       0x61 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
 
-.debug_frame
+.debug_frame    0x0000000000000000       0x3c
  *(.debug_frame)
+ .debug_frame   0x0000000000000000       0x3c target/main.o
 
-.debug_str      0x0000000000000000      0x1d7
+.debug_str      0x0000000000000000      0x31d
  *(.debug_str)
- .debug_str     0x0000000000000000      0x169 /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
- .debug_str     0x0000000000000169       0x6e /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+ .debug_str     0x0000000000000000      0x169 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+ .debug_str     0x0000000000000169      0x12f target/main.o
+                                        0x163 (size before relaxing)
+ .debug_str     0x0000000000000298       0x85 /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
 
 .debug_loc
  *(.debug_loc)
@@ -394,8 +402,9 @@ END GROUP
 .debug_pubtypes
  *(.debug_pubtypes)
 
-.debug_ranges
+.debug_ranges   0x0000000000000000       0x18
  *(.debug_ranges)
+ .debug_ranges  0x0000000000000000       0x18 target/main.o
 
 .debug_macro
  *(.debug_macro)
@@ -410,29 +419,29 @@ LOAD linker stubs
 Cross Reference Table
 
 Symbol                                            File
-__bad_interrupt                                   /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__heap_end                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__init                                            /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__stack                                           /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_1                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_10                                       /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_11                                       /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_12                                       /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_13                                       /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_14                                       /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
+__bad_interrupt                                   /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__heap_end                                        /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__init                                            /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__stack                                           /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_1                                        /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_10                                       /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_11                                       /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_12                                       /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_13                                       /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_14                                       /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
 __vector_2                                        target/main.o
-                                                  /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_3                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_4                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_5                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_6                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_7                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_8                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_9                                        /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vector_default                                  /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-__vectors                                         /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
-_exit                                             /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
-exit                                              /opt/avr/lib/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
-                                                  /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
+                                                  /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_3                                        /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_4                                        /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_5                                        /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_6                                        /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_7                                        /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_8                                        /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_9                                        /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vector_default                                  /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+__vectors                                         /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
+_exit                                             /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+exit                                              /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/avr25/libgcc.a(_exit.o)
+                                                  /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o
 main                                              target/main.o
-                                                  /opt/avr/lib/gcc/avr/8.2.0/../../../../avr/lib/avr25/crtattiny85.o
+                                                  /usr/local/Cellar/avr-gcc/8.2.0/lib/avr-gcc/8/gcc/avr/8.2.0/../../../../../../avr/lib/avr25/crtattiny85.o

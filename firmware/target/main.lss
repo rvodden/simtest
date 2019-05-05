@@ -3,23 +3,27 @@ target/main.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         00000060  00000000  00000000  00000054  2**1
+  0 .text         00000064  00000000  00000000  00000054  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .data         00000000  00800060  00800060  000000b4  2**0
+  1 .data         00000000  00800060  00800060  000000b8  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  2 .comment      00000011  00000000  00000000  000000b4  2**0
+  2 .comment      00000011  00000000  00000000  000000b8  2**0
                   CONTENTS, READONLY
-  3 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  000000c8  2**2
+  3 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  000000cc  2**2
                   CONTENTS, READONLY
-  4 .debug_aranges 00000020  00000000  00000000  00000108  2**3
+  4 .debug_aranges 00000048  00000000  00000000  00000108  2**3
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_info   00000446  00000000  00000000  00000128  2**0
+  5 .debug_info   000004fb  00000000  00000000  00000150  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 000003fc  00000000  00000000  0000056e  2**0
+  6 .debug_abbrev 00000494  00000000  00000000  0000064b  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_line   00000155  00000000  00000000  0000096a  2**0
+  7 .debug_line   000001b8  00000000  00000000  00000adf  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_str    000001d7  00000000  00000000  00000abf  2**0
+  8 .debug_frame  0000003c  00000000  00000000  00000c98  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_str    0000031d  00000000  00000000  00000cd4  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_ranges 00000018  00000000  00000000  00000ff1  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -48,48 +52,67 @@ Disassembly of section .text:
   24:	d2 e0       	ldi	r29, 0x02	; 2
   26:	de bf       	out	0x3e, r29	; 62
   28:	cd bf       	out	0x3d, r28	; 61
-  2a:	0f d0       	rcall	.+30     	; 0x4a <main>
-  2c:	17 c0       	rjmp	.+46     	; 0x5c <_exit>
+  2a:	11 d0       	rcall	.+34     	; 0x4e <main>
+  2c:	19 c0       	rjmp	.+50     	; 0x60 <_exit>
 
 0000002e <__bad_interrupt>:
   2e:	e8 cf       	rjmp	.-48     	; 0x0 <__vectors>
 
 00000030 <__vector_2>:
+    PCMSK |= ( 1 << PCINT4 ); 
+    sei(); // enable interrupts
+}
+
+ISR(PCINT0_vect)
+{
   30:	8f 93       	push	r24
   32:	8f b7       	in	r24, 0x3f	; 63
   34:	8f 93       	push	r24
   36:	9f 93       	push	r25
-  38:	88 b3       	in	r24, 0x18	; 24
-  3a:	91 e0       	ldi	r25, 0x01	; 1
-  3c:	89 27       	eor	r24, r25
-  3e:	88 bb       	out	0x18, r24	; 24
-  40:	9f 91       	pop	r25
-  42:	8f 91       	pop	r24
-  44:	8f bf       	out	0x3f, r24	; 63
+    if( PINB & _BV(PB4) ) {
+  38:	b4 9b       	sbis	0x16, 4	; 22
+  3a:	04 c0       	rjmp	.+8      	; 0x44 <__SREG__+0x5>
+        PORTB ^= _BV(PB0);
+  3c:	88 b3       	in	r24, 0x18	; 24
+  3e:	91 e0       	ldi	r25, 0x01	; 1
+  40:	89 27       	eor	r24, r25
+  42:	88 bb       	out	0x18, r24	; 24
+    }
+}
+  44:	9f 91       	pop	r25
   46:	8f 91       	pop	r24
-  48:	18 95       	reti
+  48:	8f bf       	out	0x3f, r24	; 63
+  4a:	8f 91       	pop	r24
+  4c:	18 95       	reti
 
-0000004a <main>:
-  4a:	8f ef       	ldi	r24, 0xFF	; 255
-  4c:	87 bb       	out	0x17, r24	; 23
-  4e:	c4 9a       	sbi	0x18, 4	; 24
-  50:	8b b7       	in	r24, 0x3b	; 59
-  52:	80 62       	ori	r24, 0x20	; 32
-  54:	8b bf       	out	0x3b, r24	; 59
-  56:	ac 9a       	sbi	0x15, 4	; 21
-  58:	78 94       	sei
-  5a:	ff cf       	rjmp	.-2      	; 0x5a <main+0x10>
+0000004e <main>:
 
-0000005c <_exit>:
-ENDF _exit
+int main ( void  ) {
+    /* PB0 as output*/
+    DDRB |= (1 << PB0);
+  4e:	b8 9a       	sbi	0x17, 0	; 23
+    /* PB4 as input */
+    DDRB &= ~(1 << PB4);
+  50:	bc 98       	cbi	0x17, 4	; 23
+    /* enable pullup resistor */
+    PORTB |= (1 << PB4); 
+  52:	c4 9a       	sbi	0x18, 4	; 24
+    GIMSK |= ( 1 << PCIE );  /* pin change interrupt enable */
+  54:	8b b7       	in	r24, 0x3b	; 59
+  56:	80 62       	ori	r24, 0x20	; 32
+  58:	8b bf       	out	0x3b, r24	; 59
+    PCMSK |= ( 1 << PCINT4 ); 
+  5a:	ac 9a       	sbi	0x15, 4	; 21
+    sei(); // enable interrupts
+  5c:	78 94       	sei
 
-	/* Code from .fini8 ... .fini1 sections inserted by ld script.  */
+    initInterrupt();
 
-	.section .fini0,"ax",@progbits
-	cli
-  5c:	f8 94       	cli
+    while(1);
+  5e:	ff cf       	rjmp	.-2      	; 0x5e <main+0x10>
 
-0000005e <__stop_program>:
-__stop_program:
-	rjmp	__stop_program
-  5e:	ff cf       	rjmp	.-2      	; 0x5e <__stop_program>
+00000060 <_exit>:
+  60:	f8 94       	cli
+
+00000062 <__stop_program>:
+  62:	ff cf       	rjmp	.-2      	; 0x62 <__stop_program>

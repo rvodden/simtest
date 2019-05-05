@@ -29,6 +29,7 @@ CFLAGS += -funsigned-bitfields
 CFLAGS += -fpack-struct
 CFLAGS += -fshort-enums
 CFLAGS += -pedantic
+CFLAGS += -g
 CFLAGS += -Wall 
 CFLAGS += -Wextra 
 CFLAGS += -Wstrict-prototypes

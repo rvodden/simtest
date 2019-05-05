@@ -5,56 +5,138 @@
    5               	__tmp_reg__ = 0
    6               	__zero_reg__ = 1
    7               		.text
-   8               	.global	__vector_2
-  10               	__vector_2:
-  11 0000 8F93 8FB7 		__gcc_isr 1
-  11      8F93 
-  12 0006 9F93      		push r25
-  13               	/* prologue: Signal */
-  14               	/* frame size = 0 */
-  15               	/* stack size = 1...5 */
-  16               	.L__stack_usage = 1 + __gcc_isr.n_pushed
-  17 0008 88B3      		in r24,0x18
-  18 000a 91E0      		ldi r25,lo8(1)
-  19 000c 8927      		eor r24,r25
-  20 000e 88BB      		out 0x18,r24
-  21               	/* epilogue start */
-  22 0010 9F91      		pop r25
-  23 0012 8F91 8FBF 		__gcc_isr 2
-  23      8F91 
-  24 0018 1895      		reti
-  25               		__gcc_isr 0,r24
-  27               		.section	.text.startup,"ax",@progbits
-  28               	.global	main
-  30               	main:
-  31               	/* prologue: function */
-  32               	/* frame size = 0 */
-  33               	/* stack size = 0 */
-  34               	.L__stack_usage = 0
-  35 0000 8FEF      		ldi r24,lo8(-1)
-  36 0002 87BB      		out 0x17,r24
-  37 0004 C49A      		sbi 0x18,4
-  38 0006 8BB7      		in r24,0x3b
-  39 0008 8062      		ori r24,lo8(32)
-  40 000a 8BBF      		out 0x3b,r24
-  41 000c AC9A      		sbi 0x15,4
-  42               	/* #APP */
-  43               	 ;  10 "src/main.c" 1
-  44 000e 7894      		sei
-  45               	 ;  0 "" 2
-  46               	/* #NOAPP */
-  47               	.L3:
-  48 0010 00C0      		rjmp .L3
-  50               		.ident	"GCC: (GNU) 8.2.0"
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               	.global	__vector_2
+  12               	__vector_2:
+  13               	.LFB7:
+  14               		.file 1 "src/main.c"
+   1:src/main.c    **** #define F_CPU 8000000UL
+   2:src/main.c    **** 
+   3:src/main.c    **** #include <avr/io.h>
+   4:src/main.c    **** #include <util/delay.h>
+   5:src/main.c    **** #include <avr/interrupt.h>
+   6:src/main.c    **** 
+   7:src/main.c    **** static inline void initInterrupt( void ) {
+   8:src/main.c    ****     GIMSK |= ( 1 << PCIE );  /* pin change interrupt enable */
+   9:src/main.c    ****     /* pin change interrupt enable for PCINT4 */
+  10:src/main.c    ****     PCMSK |= ( 1 << PCINT4 ); 
+  11:src/main.c    ****     sei(); // enable interrupts
+  12:src/main.c    **** }
+  13:src/main.c    **** 
+  14:src/main.c    **** ISR(PCINT0_vect)
+  15:src/main.c    **** {
+  15               		.loc 1 15 1 view -0
+  16               		.cfi_startproc
+  17 0000 8F93 8FB7 		__gcc_isr 1
+  17      8F93 
+  18 0006 9F93      		push r25
+  19               		.cfi_def_cfa_offset 3
+  20               		.cfi_offset 25, -2
+  21               	/* prologue: Signal */
+  22               	/* frame size = 0 */
+  23               	/* stack size = 1...5 */
+  24               	.L__stack_usage = 1 + __gcc_isr.n_pushed
+  16:src/main.c    ****     if( PINB & _BV(PB4) ) {
+  25               		.loc 1 16 5 view .LVU1
+  26               		.loc 1 16 7 is_stmt 0 view .LVU2
+  27 0008 B49B      		sbis 0x16,4
+  28 000a 00C0      		rjmp .L1
+  17:src/main.c    ****         PORTB ^= _BV(PB0);
+  29               		.loc 1 17 9 is_stmt 1 view .LVU3
+  30               		.loc 1 17 15 is_stmt 0 view .LVU4
+  31 000c 88B3      		in r24,0x18
+  32 000e 91E0      		ldi r25,lo8(1)
+  33 0010 8927      		eor r24,r25
+  34 0012 88BB      		out 0x18,r24
+  35               	.L1:
+  36               	/* epilogue start */
+  18:src/main.c    ****     }
+  19:src/main.c    **** }
+  37               		.loc 1 19 1 view .LVU5
+  38 0014 9F91      		pop r25
+  39 0016 8F91 8FBF 		__gcc_isr 2
+  39      8F91 
+  40 001c 1895      		reti
+  41               		__gcc_isr 0,r24
+  42               		.cfi_endproc
+  43               	.LFE7:
+  45               		.section	.text.startup,"ax",@progbits
+  46               	.global	main
+  48               	main:
+  49               	.LFB8:
+  20:src/main.c    **** 
+  21:src/main.c    **** int main ( void  ) {
+  50               		.loc 1 21 20 is_stmt 1 view -0
+  51               		.cfi_startproc
+  52               	/* prologue: function */
+  53               	/* frame size = 0 */
+  54               	/* stack size = 0 */
+  55               	.L__stack_usage = 0
+  22:src/main.c    ****     /* PB0 as output*/
+  23:src/main.c    ****     DDRB |= (1 << PB0);
+  56               		.loc 1 23 5 view .LVU7
+  57               		.loc 1 23 10 is_stmt 0 view .LVU8
+  58 0000 B89A      		sbi 0x17,0
+  24:src/main.c    ****     /* PB4 as input */
+  25:src/main.c    ****     DDRB &= ~(1 << PB4);
+  59               		.loc 1 25 5 is_stmt 1 view .LVU9
+  60               		.loc 1 25 10 is_stmt 0 view .LVU10
+  61 0002 BC98      		cbi 0x17,4
+  26:src/main.c    ****     /* enable pullup resistor */
+  27:src/main.c    ****     PORTB |= (1 << PB4); 
+  62               		.loc 1 27 5 is_stmt 1 view .LVU11
+  63               		.loc 1 27 11 is_stmt 0 view .LVU12
+  64 0004 C49A      		sbi 0x18,4
+  28:src/main.c    **** 
+  29:src/main.c    ****     initInterrupt();
+  65               		.loc 1 29 5 is_stmt 1 view .LVU13
+  66               	.LBB4:
+  67               	.LBI4:
+   7:src/main.c    ****     GIMSK |= ( 1 << PCIE );  /* pin change interrupt enable */
+  68               		.loc 1 7 20 view .LVU14
+  69               	.LBB5:
+   8:src/main.c    ****     /* pin change interrupt enable for PCINT4 */
+  70               		.loc 1 8 5 view .LVU15
+   8:src/main.c    ****     /* pin change interrupt enable for PCINT4 */
+  71               		.loc 1 8 11 is_stmt 0 view .LVU16
+  72 0006 8BB7      		in r24,0x3b
+  73 0008 8062      		ori r24,lo8(32)
+  74 000a 8BBF      		out 0x3b,r24
+  10:src/main.c    ****     sei(); // enable interrupts
+  75               		.loc 1 10 5 is_stmt 1 view .LVU17
+  10:src/main.c    ****     sei(); // enable interrupts
+  76               		.loc 1 10 11 is_stmt 0 view .LVU18
+  77 000c AC9A      		sbi 0x15,4
+  11:src/main.c    **** }
+  78               		.loc 1 11 5 is_stmt 1 view .LVU19
+  79               	/* #APP */
+  80               	 ;  11 "src/main.c" 1
+  81 000e 7894      		sei
+  82               	 ;  0 "" 2
+  83               	/* #NOAPP */
+  84               	.L7:
+  85               	.LBE5:
+  86               	.LBE4:
+  30:src/main.c    **** 
+  31:src/main.c    ****     while(1);
+  87               		.loc 1 31 5 discriminator 1 view .LVU20
+  88               		.loc 1 31 13 discriminator 1 view .LVU21
+  89 0010 00C0      		rjmp .L7
+  90               		.cfi_endproc
+  91               	.LFE8:
+  93               		.text
+  94               	.Letext0:
+  95               		.file 2 "/usr/local/Cellar/avr-gcc/8.2.0/avr/include/stdint.h"
 DEFINED SYMBOLS
                             *ABS*:0000000000000000 main.c
-     /tmp/ccZ9obR3.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccZ9obR3.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccZ9obR3.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccZ9obR3.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccZ9obR3.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccZ9obR3.s:10     .text:0000000000000000 __vector_2
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccbKjG0G.s:2      *ABS*:000000000000003e __SP_H__
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccbKjG0G.s:3      *ABS*:000000000000003d __SP_L__
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccbKjG0G.s:4      *ABS*:000000000000003f __SREG__
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccbKjG0G.s:5      *ABS*:0000000000000000 __tmp_reg__
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccbKjG0G.s:6      *ABS*:0000000000000001 __zero_reg__
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccbKjG0G.s:12     .text:0000000000000000 __vector_2
                             *ABS*:0000000000000002 __gcc_isr.n_pushed.001
-     /tmp/ccZ9obR3.s:30     .text.startup:0000000000000000 main
+/var/folders/04/xyfd766s6dg8yt38nzvpj_yr0lqssm/T//ccbKjG0G.s:48     .text.startup:0000000000000000 main
 
 NO UNDEFINED SYMBOLS
