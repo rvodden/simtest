@@ -9,9 +9,7 @@ class Led extends React.Component {
         }
     }
 
-    handleData(data) {
-        console.log(`Received data: ${data.data}`);
-        var event = JSON.parse(data.data);
+    handleData(event) {
         this.setState({ value: event.message.value });
     }
 
@@ -32,8 +30,8 @@ class Button extends React.Component {
     render() {
         return (
             <circle cx={60} cy={50} r={10} fill="grey" stroke="black"
-                onMouseDown = { () => this.sendMessage(true)  }
-                onMouseUp   = { () => this.sendMessage(false) }
+                onPointerDown = { () => this.sendMessage(true)  }
+                onPointerUp   = { () => this.sendMessage(false) }
             />
         )
     }
@@ -51,7 +49,13 @@ class Board extends React.Component {
         this.connection = new WebSocket('ws://localhost:7681','websocket-protocol');
         this.connection.onmessage = data => {
             console.log(`Received message: ${JSON.stringify(data)}`)
-            this.led.handleData(data)
+            var event = JSON.parse(data.data);
+            if(typeof event.message === 'undefined') {
+                console.log("This data was not an event")
+            } else {
+                console.log(`This data is an event: ${event.name}, ${JSON.stringify(event.message)}`)
+                this.led.handleData(event)
+            }
         };
     }
 
