@@ -23,6 +23,7 @@ find_path (LIBELF_INCLUDE_DIRS
     libelf.h
   PATHS
     /usr/include
+    /usr/local/include
     /usr/include/libelf
     /usr/local/include
     /usr/local/include/libelf

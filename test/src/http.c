@@ -50,11 +50,11 @@ static int http_callback(struct lws *wsi, enum lws_callback_reasons reason,
 		    void *user, void *in, size_t len)
 {
     struct per_session_data *per_session_data = (struct per_session_data *)user;
-    unsigned char *buffer[LWS_PRE + 2048];
-    unsigned char *start = buffer[LWS_PRE];
+    unsigned char buffer[LWS_PRE + 2048];
+    unsigned char *start = buffer + LWS_PRE;
     unsigned char *p = start;
-    lwsl_debug("Size of buffer: %d\n", sizeof(&buffer));
-    unsigned char *end = buffer[sizeof(&buffer) - LWS_PRE - 1];
+    lwsl_debug("Size of buffer: %lu\n", sizeof(buffer));
+    unsigned char *end = buffer + sizeof(buffer) - LWS_PRE - 1;
 
 #ifdef __APPLE__
     uint64_t tid;
@@ -79,27 +79,30 @@ static int http_callback(struct lws *wsi, enum lws_callback_reasons reason,
            
             /* TODO: find a way to autogenerate this bit */
 
-            //if (strncmp("index.html", requested_uri, sizeof("index.html")) == 0) {
-            //    per_session_data->message = &_binary_resources_index_html_start;
-            //    per_session_data->length = _binary_resources_index_html_size;
-            //    status = HTTP_STATUS_OK;
-            //    mime_type = "text/html";
-            //} else if (strncmp("style.css", requested_uri, sizeof("style.css")) == 0) {
-            //    per_session_data->message = &_binary_resources_style_css_start;
-            //    per_session_data->length = _binary_resources_style_css_size;
-            //    status = HTTP_STATUS_OK;
-            //    mime_type = "text/css";
-            //} else if (strncmp("app.js", requested_uri, sizeof("app.js")) == 0) {
-            //    per_session_data->message = &_binary_resources_app_js_start;
-            //    per_session_data->length = _binary_resources_app_js_size;
-            //    status = HTTP_STATUS_OK;
-            //    mime_type = "text/javascript";
-            //} else {
-            //    lwsl_debug("%s not found.\n", requested_uri); 
-            //    per_session_data->message = NULL;
-            //    per_session_data->length = 0;
-            //    status = HTTP_STATUS_NOT_FOUND;
-            //}
+            if (strncmp("index.html", requested_uri, sizeof("index.html")) == 0) {
+                lwsl_debug("Serving index.html\n");
+                per_session_data->message = r_resources_index_html_begin;
+                per_session_data->length = r_resources_index_html_size;
+                status = HTTP_STATUS_OK;
+                mime_type = "text/html";
+            } else if (strncmp("style.css", requested_uri, sizeof("style.css")) == 0) {
+                per_session_data->message = r_resources_style_css_begin;
+                per_session_data->length = r_resources_style_css_size;
+                status = HTTP_STATUS_OK;
+                mime_type = "text/css";
+            } else if (strncmp("app.js", requested_uri, sizeof("app.js")) == 0) {
+                per_session_data->message = r_resources_app_js_begin;
+                per_session_data->length = r_resources_app_js_size;
+                status = HTTP_STATUS_OK;
+                mime_type = "text/javascript";
+            } else {
+                lwsl_debug("%s not found.\n", requested_uri); 
+                per_session_data->message = NULL;
+                per_session_data->length = 0;
+                status = HTTP_STATUS_NOT_FOUND;
+            }
+            
+            /* stop autogeneration */
             
             if(lws_add_http_common_headers(wsi, status, mime_type, LWS_ILLEGAL_HTTP_CONTENT_LEN, &p, end))
                 return 1;
@@ -107,7 +110,6 @@ static int http_callback(struct lws *wsi, enum lws_callback_reasons reason,
             if(lws_finalize_write_http_header(wsi, start, &p, end))
                 return 1;
 
-            /* stop autogeneration */
 
             lws_callback_on_writable(wsi);
 
