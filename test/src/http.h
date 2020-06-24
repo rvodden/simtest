@@ -4,7 +4,7 @@
 
 struct per_session_data {
     char path[128];
-    char* message;
+    const char* message;
     size_t length;
 };
 

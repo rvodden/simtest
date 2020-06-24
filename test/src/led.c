@@ -4,46 +4,52 @@
 #include "led.h"
 #include "websocket.h"
 
-void led_init(
+struct led_t {
+    avr_irq_t * irq;	// output irq
+    uint8_t value;
+};
+
+static led_t* led_alloc() {
+    led_t* led = malloc(sizeof(led_t));
+    memset(led, 0, sizeof(led_t));
+    return led;
+}
+
+component_t* led_init(
         struct simulator *simulator,
-        led_t * led,
         const char * name)
 {
     printf("Initializing LED: %s\n", name);
+    led_t* led = led_alloc();
     led->irq = avr_alloc_irq(&simulator->avr->irq_pool, 0, 1, &name);
-    led->simulator = simulator;
-    led->name = name;
-    avr_irq_register_notify(led->irq, &led_switch, simulator);
-    simulator_add_component(simulator, led);
+
+    component_t *component = simulator_add_component(simulator, name, NULL, led_destroy, (void*) led);
+    avr_irq_register_notify(led->irq, led_switch, (void*) component);
+
+    return component;
 }
 
-void led_destroy(led_t* led)
+void led_destroy(void* param)
 {
-    printf("Destroying LED: %s\n", led->name);
+    led_t *led = (led_t*) param;
+    printf("Destroying LED. \n");
     avr_free_irq(led->irq, 1);
 }
 
 void led_switch( struct avr_irq_t * irq, uint32_t value, void * param ) {
-    struct simulator *simulator = (struct simulator*) param;
-
-    struct websocket_message*  message = malloc(sizeof(struct websocket_message));
-    memset(message, 0, sizeof(struct websocket_message));
-
+    int length;
+    component_t *component = (component_t *) param;
     char* text;
     if (value == 0)
-        text = "false";
+        text = "{\"value\": false }";
     else
-        text = "true";
-    message->length = lws_snprintf(message->payload, WEBSOCKET_MAX_MESSAGE_LENGTH, "{\"name\": \"led\", \"message\": {\"value\": %s }}\n", text);
+        text = "{\"value\": true }";
 
-    pthread_mutex_lock(&simulator->lock_output_ring);
-    if(!lws_ring_get_count_free_elements(simulator->output_ring)) {
-        lwsl_user("Dropping as no space in the output_ring buffer.\n");
-    }
+    simulator_send_message(component, text);
+}
 
-    lws_ring_insert(simulator->output_ring, message,1);
-    lwsl_debug("Cancelling service on context: %p\n", (void *)simulator->context);
-    lws_cancel_service(simulator->context);
-    pthread_mutex_unlock(&simulator->lock_output_ring);
-    free(message);
+void led_connect( component_t* component, avr_irq_t* irq ) {
+    led_t* led = (led_t*) simulator_component_get_definition(component);
+    printf("Connecting LED: %s\n", simulator_component_get_name(component));
+    avr_connect_irq(irq, led->irq);
 }

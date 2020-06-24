@@ -25,6 +25,7 @@ class Button extends React.Component {
     constructor(props) {
         super(props);
         this.sendMessage = this.props.sendMessage
+        this.id = this.props.id
     }
 
     render() {
@@ -47,9 +48,9 @@ class Board extends React.Component {
 
     componentDidMount() {
         this.connection = new WebSocket('ws://localhost:7681','websocket-protocol');
-        this.connection.onmessage = data => {
-            console.log(`Received message: ${JSON.stringify(data)}`)
-            var event = JSON.parse(data.data);
+        this.connection.onmessage = message => {
+            console.log(`Received message: ${JSON.stringify(message.data)}`)
+            var event = JSON.parse(message.data);
             if(typeof event.message === 'undefined') {
                 console.log("This data was not an event")
             } else {
@@ -59,8 +60,8 @@ class Board extends React.Component {
         };
     }
 
-    sendMessage(message, name) {
-        var jsonMessage = { name: name, message: {value: message}  };
+    sendMessage(message, id) {
+        let jsonMessage = { id: id, message: {value: message}  };
         console.log(`Sending message: ${JSON.stringify(jsonMessage)}`);
         this.connection.send(JSON.stringify(jsonMessage));
     }
@@ -72,11 +73,11 @@ class Board extends React.Component {
                     <Led
                         value={true}
                         ref={this.setLed}
-                        name="led"
+                        id="0"
                     />
                     <Button
                         sendMessage={(message) => this.sendMessage(message, "button")}
-                        name="button"
+                        id="1"
                     />
                 </svg>
             </div>

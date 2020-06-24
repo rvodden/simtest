@@ -22,10 +22,35 @@
 #include "simulator.h"
 #include "websocket.h"
 
-led_t led;
+component_t* led;
 button_t button;
 
-/** 
+struct component_t {
+    int          id;
+    component_t* next;
+    const char*  name;
+    void       (*process_message) (char*);
+    void       (*destroy)         (void*);
+    void*        definition;
+    struct simulator* simulator;
+};
+
+#define SIMULATOR_INITIAL_COMPONENT_ID 0
+
+/* PRIVATE FUNCTIONS */
+
+/**
+ * leave room for doing something more clever here
+ * @param previous_id
+ * @return
+ */
+static int generate_next_id(int previous_id) {
+    return previous_id++;
+}
+
+/* PUBLIC IMPLEMENTATIONS */
+
+/**
  * \brief creates a new simulator
  *
  *
@@ -68,9 +93,9 @@ struct simulator* simulator_init() {
     avr_init(simulator->avr);
     avr_load_firmware(simulator->avr, &firmware);
 
-    simulator->avr->gdb_port = 1234;
-    simulator->avr->state = cpu_Stopped;
-    avr_gdb_init(simulator->avr);
+//     simulator->avr->gdb_port = 1234;
+//     simulator->avr->state = cpu_Stopped;
+//     avr_gdb_init(simulator->avr);
 
     pthread_mutex_init(&simulator->lock_output_ring, NULL);
     simulator->output_ring = lws_ring_create( sizeof(struct websocket_message), 32, websocket_destroy_message);
@@ -82,41 +107,84 @@ struct simulator* simulator_init() {
     simulator->terminate = 0;
 
     /* create the LED */
-    led_init(simulator, &led, "led");
+    led = led_init(simulator, "led");
 
     /* attach the LED to the port */
-    avr_connect_irq(avr_io_getirq(simulator->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 0), led.irq);
+    led_connect(led, avr_io_getirq(simulator->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 0));
 
-    /* create the BUTTON */
-    button_init(simulator, &button, "button");
-
-    /* attach the BUTTON to the port */
-    avr_connect_irq(button.irq, avr_io_getirq(simulator->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 4));
+//    /* create the BUTTON */
+//    button_init(simulator, &button, "button");
+//
+//    /* attach the BUTTON to the port */
+//    avr_connect_irq(button.irq, avr_io_getirq(simulator->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 4));
 
     return simulator;
 }
 
-void simulator_add_component(struct simulator* simulator, struct component* component) {
-    struct component* tail = simulator->components_head;
-    component->next = NULL;
+component_t* simulator_add_component(struct simulator* simulator, const char* name, void (*process_message) (char*), void (*destroy) (void*), void* definition) {
+    component_t* component = calloc(1, sizeof(component_t));
 
-    if (!tail) {
-        simulator->components_head = component;
+    /* stitch the new component in at the start of the linked list */
+    component->next = simulator->components_head;
+    simulator->components_head = component;
+
+    component->name = name;
+    component->definition = definition;
+    component->process_message = process_message;
+    component->destroy = destroy;
+    if(component->next) {
+        component->id = generate_next_id(component->next->id);
     } else {
-        while(tail->next) {
-            tail = tail->next;
-        }
-        tail->next = component;
+        component->id = SIMULATOR_INITIAL_COMPONENT_ID;
     }
+    component->simulator = simulator;
+
+    return component;
+}
+
+void* simulator_component_get_definition(component_t *component) {
+    return component->definition;
+}
+
+char* simulator_component_get_name(component_t *component) {
+    return component->name;
+}
+
+void simulator_send_message(component_t* component, char* text) {
+    struct simulator *simulator = component->simulator;
+    struct websocket_message*  message = malloc(sizeof(struct websocket_message));
+    memset(message, 0, sizeof(struct websocket_message));
+    message->length = lws_snprintf(message->payload, WEBSOCKET_MAX_MESSAGE_LENGTH, "{\"id\": %i, \"message\": %s}\n", component->id, text);
+    lwsl_debug("Sending the following message: %s\n", message->payload);
+
+    pthread_mutex_lock(&simulator->lock_output_ring);
+    if(!lws_ring_get_count_free_elements(simulator->output_ring)) {
+        lwsl_user("Dropping as no space in the output_ring buffer.\n");
+    }
+
+    lws_ring_insert(simulator->output_ring, message,1);
+    lwsl_debug("Cancelling service on context: %p\n", (void *)simulator->context);
+    lws_cancel_service(simulator->context);
+    pthread_mutex_unlock(&simulator->lock_output_ring);
+    free(message);
 }
 
 void simulator_destroy(struct simulator* simulator) {
+    lwsl_debug("Destroying the components\n");
+    component_t *component = simulator->components_head;
+    do {
+        component_t *temp = component;
+        component = component->next;
+        temp->destroy(temp->definition);
+        free(temp);
+    } while(component);
+
     lwsl_debug("Destroying the simulator\n");
     lws_ring_destroy(simulator->output_ring);
     pthread_mutex_destroy(&simulator->lock_output_ring);
     lws_ring_destroy(simulator->input_ring);
     pthread_mutex_destroy(&simulator->lock_input_ring);
-    led_destroy(&led);
+    led_destroy(led);
     avr_terminate(simulator->avr);
     free(simulator);
 }
@@ -152,6 +220,7 @@ void simulator_run(struct simulator* simulator) {
         pthread_mutex_unlock(&simulator->lock_input_ring);
 
     }
+
     switch(state) {
         case cpu_Done:
             lwsl_err("Simulator Thread Exited as CPU is done.\n");
