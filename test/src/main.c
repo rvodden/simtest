@@ -8,10 +8,10 @@ static void             sighandler(int);
 static void*            avr_run_thread(void*);
 static struct           lws_context *context;
 static pthread_t        run;
-static struct simulator *simulator;
+static simulator_t *simulator;
 
 static void* avr_run_thread(void *param) {
-    struct simulator *simulator = (struct simulator*) param;
+    simulator_t *simulator = (simulator_t*) param;
     simulator_run(simulator);
 
     return NULL;
@@ -19,9 +19,9 @@ static void* avr_run_thread(void *param) {
 
 static void sighandler(int sig)
 {
-    lwsl_debug("Recieved SIGINT: %d\n", sig);
+    lwsl_debug("Received SIGINT: %d\n", sig);
     pthread_cancel(run);
-    http_destroy(simulator->context);
+    http_destroy(get_simulator_context(simulator));
     simulator_terminate(simulator);
     pthread_join(run, NULL);
     simulator_destroy(simulator);
@@ -39,7 +39,7 @@ int main ( void )
         return -1;
     }
 
-    simulator->context = context;
+    set_simulator_context(simulator, context);
 
     signal(SIGINT, sighandler);
     

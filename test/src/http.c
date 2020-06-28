@@ -146,7 +146,7 @@ static int http_callback(struct lws *wsi, enum lws_callback_reasons reason,
     return lws_callback_http_dummy(wsi, reason, user, in, len);
 }
 
-struct lws_context* http_init( struct simulator* simulator ) {
+struct lws_context* http_init( simulator_t* simulator ) {
     int uid = -1, gid = -1;
 
     struct lws_context *context;

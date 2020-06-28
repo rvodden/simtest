@@ -12,6 +12,7 @@
 #include <sim_irq.h>
 #include <sim_avr.h>
 #include <sim_elf.h>
+#include <sim_gdb.h>
 #include <avr_ioport.h>
 
 #include <libwebsockets.h>
@@ -25,6 +26,17 @@
 component_t* led;
 component_t* button;
 
+struct simulator_t {
+    avr_t*                avr;
+    struct lws_ring*      output_ring;
+    pthread_mutex_t       lock_output_ring;
+    struct lws_ring*      input_ring;
+    pthread_mutex_t       lock_input_ring;
+    struct lws_context*   context;
+    uint8_t               terminate;
+    pthread_mutex_t       lock_terminate;
+    struct component_t*   components_head;
+};
 
 /* PUBLIC IMPLEMENTATIONS */
 
@@ -33,10 +45,10 @@ component_t* button;
  *
  *
  */
-struct simulator* simulator_init() {
-    struct simulator * simulator;
+simulator_t* simulator_init() {
+    simulator_t* simulator;
 
-    simulator = malloc(sizeof(struct simulator));
+    simulator = malloc(sizeof(simulator_t));
 
     elf_firmware_t firmware;
     const char* firmware_filename = "main.elf";
@@ -71,9 +83,9 @@ struct simulator* simulator_init() {
     avr_init(simulator->avr);
     avr_load_firmware(simulator->avr, &firmware);
 
-    simulator->avr->gdb_port = 1234;
-    simulator->avr->state = cpu_Stopped;
-    avr_gdb_init(simulator->avr);
+//    simulator->avr->gdb_port = 1234;
+//    simulator->avr->state = cpu_Stopped;
+//    avr_gdb_init(simulator->avr);
 
     pthread_mutex_init(&simulator->lock_output_ring, NULL);
     simulator->output_ring = lws_ring_create( sizeof(struct websocket_message), 32, websocket_destroy_message);
@@ -101,7 +113,7 @@ struct simulator* simulator_init() {
 
 int component_get_id(component_t *pComponent);
 
-void simulator_send_message(struct simulator* simulator, char* text) {
+void simulator_send_message(simulator_t* simulator, char* text) {
     struct websocket_message*  message = calloc(1, sizeof(struct websocket_message));
     lws_strncpy(message->payload, text, WEBSOCKET_MAX_MESSAGE_LENGTH);
     message->length = strlen(message->payload);
@@ -119,7 +131,7 @@ void simulator_send_message(struct simulator* simulator, char* text) {
     free(message);
 }
 
-void simulator_destroy(struct simulator* simulator) {
+void simulator_destroy(simulator_t* simulator) {
     lwsl_debug("Destroying the components\n");
     destroy_components(simulator->components_head);
 
@@ -133,7 +145,7 @@ void simulator_destroy(struct simulator* simulator) {
     free(simulator);
 }
 
-void simulator_run(struct simulator* simulator) {
+void simulator_run(simulator_t* simulator) {
     int state = 0;
     int terminated = 0;
 
@@ -173,8 +185,46 @@ void simulator_run(struct simulator* simulator) {
     pthread_exit(NULL);
 }
 
-void simulator_terminate(struct simulator* simulator) {
+void simulator_terminate(simulator_t* simulator) {
     pthread_mutex_lock(&simulator->lock_terminate);
     simulator->terminate = 1;
     pthread_mutex_unlock(&simulator->lock_terminate);
+}
+
+avr_irq_pool_t * get_simulator_irq_pool(simulator_t* simulator) {
+    return &simulator->avr->irq_pool;
+}
+
+component_t* get_simulator_components(simulator_t* simulator) {
+    return simulator->components_head;
+}
+
+component_t* add_simulator_component(simulator_t* simulator, const char* name, void (*process_message) (component_t*, struct event_message*), void (*destroy) (component_t*), void* definition) {
+    component_t *component = component_init(simulator, name, process_message, destroy, definition);
+    simulator->components_head = add_component(get_simulator_components(simulator), component);
+    return component;
+}
+
+
+struct lws_context* get_simulator_context(simulator_t* simulator) {
+    return simulator->context;
+}
+
+void set_simulator_context(simulator_t* simulator, struct lws_context* context) {
+    simulator->context = context;
+}
+
+struct lws_ring* get_simulator_output_ring(simulator_t* simulator) {
+    return simulator->output_ring;
+}
+
+struct lws_ring* get_simulator_input_ring(simulator_t* simulator) {
+    return simulator->input_ring;
+}
+pthread_mutex_t* get_simulator_output_ring_lock(simulator_t* simulator) {
+    return &simulator->lock_output_ring;
+}
+
+pthread_mutex_t* get_simulator_input_ring_lock(simulator_t* simulator) {
+    return &simulator->lock_input_ring;
 }

@@ -6,9 +6,7 @@
 
 struct button_t {
     avr_irq_t * irq;	// input irq
-    struct simulator *simulator;
     uint8_t value;
-    const char* name;
 };
 
 button_t* button_alloc() {
@@ -17,24 +15,20 @@ button_t* button_alloc() {
     return button;
 }
 
-component_t* button_init( struct simulator * simulator, const char * name )
+component_t* button_init( simulator_t * simulator, const char * name )
 {
     printf("Initializing BUTTON: %s\n", name);
     button_t* button = button_alloc();
-    button->irq = avr_alloc_irq(&simulator->avr->irq_pool, 0, 1, &name);
-    component_t* component = add_component_to_simulator(simulator, name, button_process_message, button_destroy,
+    button->irq = avr_alloc_irq(get_simulator_irq_pool(simulator), 0, 1, &name);
+    component_t* component = add_simulator_component(simulator, name, button_process_message, button_destroy,
                                                         (void *) button);
-
-    button->simulator = simulator;
-    button->name = name;
-
     return component;
 }
 
 void button_destroy(component_t* component)
 {
     button_t* button = (button_t*) get_component_definition(component);
-    printf("Destroying BUTTON: %s\n", button->name);
+    printf("Destroying BUTTON: %s\n", get_component_name(component));
     avr_free_irq(button->irq, 1);
 }
 

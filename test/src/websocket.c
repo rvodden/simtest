@@ -189,13 +189,13 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
     return 0;
 }
 
-struct websocket_context_data* create_websocket_context_data(struct simulator* simulator) {
+struct websocket_context_data* create_websocket_context_data(simulator_t* simulator) {
     struct websocket_context_data* websocket_context_data = malloc(sizeof(struct websocket_context_data));
     memset(websocket_context_data, 0, sizeof(struct websocket_context_data));
-    websocket_context_data->output_ring = simulator->output_ring;
-    websocket_context_data->lock_output_ring = &simulator->lock_output_ring;
-    websocket_context_data->input_ring = simulator->input_ring;
-    websocket_context_data->lock_input_ring = &simulator->lock_input_ring;
+    websocket_context_data->output_ring = get_simulator_output_ring(simulator);
+    websocket_context_data->lock_output_ring = get_simulator_output_ring_lock(simulator);
+    websocket_context_data->input_ring = get_simulator_input_ring(simulator);
+    websocket_context_data->lock_input_ring = get_simulator_input_ring_lock(simulator);
 
     return websocket_context_data;
 }
@@ -204,7 +204,7 @@ void destroy_websocket_context_data(struct websocket_context_data* context_data)
     free(context_data);
 }
 
-/* PRIVATE IMPLEMENATION */
+/* PRIVATE IMPLEMENTATION */
 
 /* recursive function to delete a session from the session linked list */
 static struct websocket_per_session_data* delete_session(

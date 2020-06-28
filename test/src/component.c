@@ -9,7 +9,7 @@ struct component_t {
     void       (*process_message) (component_t*, struct event_message*);
     void       (*destroy)         (component_t*);
     void*        definition;
-    struct simulator* simulator;
+    simulator_t* simulator;
 };
 
 /* PRIVATE FUNCTIONS */
@@ -24,12 +24,18 @@ static int generate_next_id(int previous_id) {
     return ++previous_id;
 }
 
-component_t* add_component_to_simulator(struct simulator* simulator, const char* name, void (*process_message) (component_t*, struct event_message*), void (*destroy) (component_t*), void* definition) {
+/* PUBLIC IMPLEMENTATIONS */
+
+component_t* component_init(
+        simulator_t* simulator,
+        const char* name,
+        void (*process_message) (component_t*, struct event_message*),
+        void (*destroy) (component_t*),
+        void* definition)
+{
     component_t* component = calloc(1, sizeof(component_t));
 
     /* stitch the new component in at the start of the linked list */
-    component->next = simulator->components_head;
-    simulator->components_head = component;
 
     component->name = name;
     component->definition = definition;
@@ -41,7 +47,11 @@ component_t* add_component_to_simulator(struct simulator* simulator, const char*
         component->id = SIMULATOR_INITIAL_COMPONENT_ID;
     }
     component->simulator = simulator;
+    return component;
+}
 
+component_t* add_component(component_t* components, component_t* component) {
+    component->next = components;
     return component;
 }
 

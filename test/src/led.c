@@ -16,14 +16,14 @@ static led_t* led_alloc() {
 }
 
 component_t* led_init(
-        struct simulator *simulator,
+        simulator_t *simulator,
         const char * name)
 {
     printf("Initializing LED: %s\n", name);
     led_t* led = led_alloc();
-    led->irq = avr_alloc_irq(&simulator->avr->irq_pool, 0, 1, &name);
+    led->irq = avr_alloc_irq(get_simulator_irq_pool(simulator), 0, 1, &name);
 
-    component_t *component = add_component_to_simulator(simulator, name, NULL, led_destroy, (void *) led);
+    component_t *component = add_simulator_component(simulator, name, NULL, led_destroy, (void *) led);
     avr_irq_register_notify(led->irq, led_switch, (void*) component);
 
     return component;
