@@ -163,10 +163,12 @@ int websocket_callback(struct lws *lwsi, enum lws_callback_reasons reason, void 
 
         case LWS_CALLBACK_RECEIVE:
             lwsl_notice("Received: %.*s\n", (int) len, (char *)in);
-            /* attempt to parse recieved object, check result and throw back appropriate response */
+            /* attempt to parse received object, check result and throw back appropriate response */
             struct event_message input_message;
 
             event_parse(&input_message, (char*) in, (int) len);
+
+            lwsl_debug("Parsed message into: %i, %i\n", input_message.destination_id, input_message.event.value);
             
             pthread_mutex_lock(context_data->lock_input_ring);
             if(!lws_ring_get_count_free_elements(context_data->input_ring)) {

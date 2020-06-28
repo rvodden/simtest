@@ -61,7 +61,7 @@ class Board extends React.Component {
     }
 
     sendMessage(message, id) {
-        let jsonMessage = { id: id, message: {value: message}  };
+        let jsonMessage = { id: 1, message: {value: message}  };
         console.log(`Sending message: ${JSON.stringify(jsonMessage)}`);
         this.connection.send(JSON.stringify(jsonMessage));
     }
@@ -76,7 +76,7 @@ class Board extends React.Component {
                         id="0"
                     />
                     <Button
-                        sendMessage={(message) => this.sendMessage(message, "button")}
+                        sendMessage={(message) => this.sendMessage(message, this.id)}
                         id="1"
                     />
                 </svg>

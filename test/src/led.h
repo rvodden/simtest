@@ -22,7 +22,7 @@
 typedef struct led_t led_t;
 
 component_t* led_init( struct simulator * simulator, const char * name );
-void led_destroy( void* param );
+void led_destroy( component_t* component );
 void led_switch( struct avr_irq_t * irq, uint32_t value, void * param );
 void led_connect( component_t* component, avr_irq_t* irq );
 

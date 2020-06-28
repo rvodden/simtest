@@ -2,7 +2,6 @@
 #include <sim_avr.h>
 
 #include "led.h"
-#include "websocket.h"
 
 struct led_t {
     avr_irq_t * irq;	// output irq
@@ -29,9 +28,9 @@ component_t* led_init(
     return component;
 }
 
-void led_destroy(void* param)
+void led_destroy(component_t* component)
 {
-    led_t *led = (led_t*) param;
+    led_t *led = (led_t*) simulator_component_get_definition(component);
     printf("Destroying LED. \n");
     avr_free_irq(led->irq, 1);
 }

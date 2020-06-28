@@ -3,16 +3,14 @@
 static signed char  event_parser_callback   (struct lejp_ctx *ctx, char reason);
 
 static const char * const paths_message[] = {
-	"name",
-    "message",
-    "message.value"
+	"id",
+    "message"
 };
 
 enum message_paths {
-    MESSAGE_NAME,
+    MESSAGE_ID,
     MESSAGE,
-    MESSAGE_VALUE
-}; 
+};
 
 void destroy_event_message(void* event_message) {
 
@@ -41,14 +39,13 @@ bail:
 
 static signed char event_parser_callback(struct lejp_ctx *ctx, char reason) {
     struct event_message* message = (struct event_message*) ctx->user;
-
 	if (reason & LEJP_FLAG_CB_IS_VALUE) { /* is this a value we've seen */
         switch(ctx->path_match -1) {
-            case MESSAGE_NAME:
-                lwsl_debug("Received the destination of the mssage.\n");
-                lws_strncpy(message->destination, ctx->buf, EVENT_DESTINATION_MAX_LENGTH - 1);
-            case MESSAGE_VALUE:
-                lwsl_debug("Received the value of the mssage.\n");
+            case MESSAGE_ID:
+                lwsl_debug("Received the destination of the message.\n");
+                 message->destination_id = atoi(ctx->buf);
+            case MESSAGE:
+                lwsl_debug("Received the message.\n");
                 message->event.value = atoi(ctx->buf);
         }
 	}

@@ -38,7 +38,7 @@ struct event {
 };
 
 struct event_message {
-    char destination[EVENT_DESTINATION_MAX_LENGTH];
+    int destination_id;
     struct event event;
 };
 
