@@ -26,11 +26,7 @@ void simulator_destroy(struct simulator*);
 void simulator_run(struct simulator*);
 void simulator_terminate(struct simulator*);
 
-component_t* simulator_add_component(struct simulator* simulator, const char* name, void (*process_message) (component_t*, struct event_message*), void (*destroy) (component_t*), void* definition);
-void simulator_remove_component(struct simulator*, struct component_t*);
-void* simulator_component_get_definition(component_t *component);
-const char* simulator_component_get_name(component_t *component);
-void simulator_send_message(component_t *component, char* message);
+void simulator_send_message(struct simulator*, char*);
 void simulator_process_message(char*);
 
 #endif /* __simulator_h__ */

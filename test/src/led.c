@@ -2,6 +2,7 @@
 #include <sim_avr.h>
 
 #include "led.h"
+#include "component.h"
 
 struct led_t {
     avr_irq_t * irq;	// output irq
@@ -22,7 +23,7 @@ component_t* led_init(
     led_t* led = led_alloc();
     led->irq = avr_alloc_irq(&simulator->avr->irq_pool, 0, 1, &name);
 
-    component_t *component = simulator_add_component(simulator, name, NULL, led_destroy, (void*) led);
+    component_t *component = add_component_to_simulator(simulator, name, NULL, led_destroy, (void *) led);
     avr_irq_register_notify(led->irq, led_switch, (void*) component);
 
     return component;
@@ -30,7 +31,7 @@ component_t* led_init(
 
 void led_destroy(component_t* component)
 {
-    led_t *led = (led_t*) simulator_component_get_definition(component);
+    led_t *led = (led_t*) get_component_definition(component);
     printf("Destroying LED. \n");
     avr_free_irq(led->irq, 1);
 }
@@ -44,11 +45,11 @@ void led_switch( struct avr_irq_t * irq, uint32_t value, void * param ) {
     else
         text = "{\"value\": true }";
 
-    simulator_send_message(component, text);
+    send_component_message(component, text);
 }
 
 void led_connect( component_t* component, avr_irq_t* irq ) {
-    led_t* led = (led_t*) simulator_component_get_definition(component);
-    printf("Connecting LED: %s\n", simulator_component_get_name(component));
+    led_t* led = (led_t*) get_component_definition(component);
+    printf("Connecting LED: %s\n", get_component_name(component));
     avr_connect_irq(irq, led->irq);
 }

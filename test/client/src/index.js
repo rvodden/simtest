@@ -31,8 +31,8 @@ class Button extends React.Component {
     render() {
         return (
             <circle cx={60} cy={50} r={10} fill="grey" stroke="black"
-                onPointerDown = { () => this.sendMessage(true)  }
-                onPointerUp   = { () => this.sendMessage(false) }
+                onPointerDown = { () => this.sendMessage(1)  }
+                onPointerUp   = { () => this.sendMessage(0) }
             />
         )
     }

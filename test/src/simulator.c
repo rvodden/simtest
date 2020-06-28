@@ -25,29 +25,6 @@
 component_t* led;
 component_t* button;
 
-struct component_t {
-    int          id;
-    component_t* next;
-    const char*  name;
-    void       (*process_message) (component_t*, struct event_message*);
-    void       (*destroy)         (component_t*);
-    void*        definition;
-    struct simulator* simulator;
-};
-
-#define SIMULATOR_INITIAL_COMPONENT_ID 0
-
-/* PRIVATE FUNCTIONS */
-
-/**
- * leave room for doing something more clever here
- * @param previous_id
- * @return
- */
-static int generate_next_id(int previous_id) {
-    printf("Generating the ID after %i\n", previous_id);
-    return ++previous_id;
-}
 
 /* PUBLIC IMPLEMENTATIONS */
 
@@ -94,9 +71,9 @@ struct simulator* simulator_init() {
     avr_init(simulator->avr);
     avr_load_firmware(simulator->avr, &firmware);
 
-//     simulator->avr->gdb_port = 1234;
-//     simulator->avr->state = cpu_Stopped;
-//     avr_gdb_init(simulator->avr);
+    simulator->avr->gdb_port = 1234;
+    simulator->avr->state = cpu_Stopped;
+    avr_gdb_init(simulator->avr);
 
     pthread_mutex_init(&simulator->lock_output_ring, NULL);
     simulator->output_ring = lws_ring_create( sizeof(struct websocket_message), 32, websocket_destroy_message);
@@ -117,45 +94,17 @@ struct simulator* simulator_init() {
     button = button_init(simulator, "button");
 
     /* attach the BUTTON to the port */
-    button_connect(button, avr_io_getirq(simulator->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 4))
+    button_connect(button, avr_io_getirq(simulator->avr, AVR_IOCTL_IOPORT_GETIRQ('B'), 4));
 
     return simulator;
 }
 
-component_t* simulator_add_component(struct simulator* simulator, const char* name, void (*process_message) (component_t*, struct event_message*), void (*destroy) (component_t*), void* definition) {
-    component_t* component = calloc(1, sizeof(component_t));
+int component_get_id(component_t *pComponent);
 
-    /* stitch the new component in at the start of the linked list */
-    component->next = simulator->components_head;
-    simulator->components_head = component;
-
-    component->name = name;
-    component->definition = definition;
-    component->process_message = process_message;
-    component->destroy = destroy;
-    if(component->next) {
-        component->id = generate_next_id(component->next->id);
-    } else {
-        component->id = SIMULATOR_INITIAL_COMPONENT_ID;
-    }
-    component->simulator = simulator;
-
-    return component;
-}
-
-void* simulator_component_get_definition(component_t *component) {
-    return component->definition;
-}
-
-const char* simulator_component_get_name(component_t *component) {
-    return component->name;
-}
-
-void simulator_send_message(component_t* component, char* text) {
-    struct simulator *simulator = component->simulator;
-    struct websocket_message*  message = malloc(sizeof(struct websocket_message));
-    memset(message, 0, sizeof(struct websocket_message));
-    message->length = lws_snprintf(message->payload, WEBSOCKET_MAX_MESSAGE_LENGTH, "{\"id\": %i, \"message\": %s}\n", component->id, text);
+void simulator_send_message(struct simulator* simulator, char* text) {
+    struct websocket_message*  message = calloc(1, sizeof(struct websocket_message));
+    lws_strncpy(message->payload, text, WEBSOCKET_MAX_MESSAGE_LENGTH);
+    message->length = strlen(message->payload);
     lwsl_debug("Sending the following message: %s\n", message->payload);
 
     pthread_mutex_lock(&simulator->lock_output_ring);
@@ -172,13 +121,7 @@ void simulator_send_message(component_t* component, char* text) {
 
 void simulator_destroy(struct simulator* simulator) {
     lwsl_debug("Destroying the components\n");
-    component_t *component = simulator->components_head;
-    do {
-        component_t *temp = component;
-        component = component->next;
-        temp->destroy(temp);
-        free(temp);
-    } while(component);
+    destroy_components(simulator->components_head);
 
     lwsl_debug("Destroying the simulator\n");
     lws_ring_destroy(simulator->output_ring);
@@ -206,16 +149,11 @@ void simulator_run(struct simulator* simulator) {
 		struct event_message* message = ( struct event_message* ) lws_ring_get_element( simulator->input_ring, NULL);
         if(message != NULL) {
             lwsl_notice("Got message for: %d, with value %d\n", message->destination_id, message->event.value);
-            component_t* destination = simulator->components_head;
-            while (destination) {
-                lwsl_debug("Comparing %i with %i\n", message->destination_id, destination->id);
-                if(message->destination_id == destination->id)
-                    break;
-                destination = destination->next;
-            }
+
+            component_t* destination = get_component_with_id(simulator->components_head, message->destination_id);
             if (destination) {
-                lwsl_debug("Message is for %s.\n", destination->name);
-                destination->process_message(destination, message);
+                lwsl_debug("Message is for %s.\n", get_component_name(destination));
+                process_component_message(destination, message);
             }
             lws_ring_consume(simulator->input_ring,NULL,NULL,1);
         }

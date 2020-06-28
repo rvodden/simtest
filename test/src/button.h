@@ -3,6 +3,7 @@
 #include <sim_avr.h>
 
 #include "simulator.h"
+#include "component.h"
 #include "event.h"
 
 #ifndef __BUTTON_H__

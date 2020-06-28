@@ -19,7 +19,7 @@ find_package (simavr REQUIRED)
 find_package (OpenSSL REQUIRED)
 find_package (LibElf REQUIRED)
 
-add_executable(simtest ${SOURCES})
+add_executable(simtest ${SOURCES} src/component.h src/component.c)
 
 
 target_include_directories(simtest PUBLIC ${SIMAVR_INCLUDE_DIR})
